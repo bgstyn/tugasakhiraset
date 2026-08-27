@@ -14,6 +14,11 @@ class RfidController extends Controller
      */
     public function scan(Request $request)
     {
+        // Support code_asset as alias for asset_id
+        if (!$request->filled('asset_id') && $request->filled('code_asset')) {
+            $request->merge(['asset_id' => $request->input('code_asset')]);
+        }
+
         $validator = Validator::make($request->all(), [
             'rfid_uid' => 'nullable|string',
             'asset_id' => 'nullable|required_without:rfid_uid|string',

@@ -13,6 +13,11 @@ class VerifyRfidToken
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Allow logged in web session users
+        if ($request->user() || auth('web')->check() || auth()->check()) {
+            return $next($request);
+        }
+
         $expectedToken = env('RFID_API_TOKEN', 'secret-rfid-token');
 
         // Retrieve token from Authorization header, X-API-Token header, or api_token query/request field

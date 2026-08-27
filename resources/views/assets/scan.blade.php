@@ -231,9 +231,8 @@
         
         showStatus('Mencocokkan data aset...', 'info');
 
-        // Call our API endpoint to find/process the asset
-        fetch('/api/rfid-scan', {
-
+        // Call our Web Scanner endpoint to find/process the asset
+        fetch("{{ route('assets.scan.lookup') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -241,7 +240,7 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                code_asset: decodedText
+                code: decodedText
             })
         })
         .then(response => response.json())

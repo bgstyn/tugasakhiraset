@@ -325,6 +325,68 @@ class AssetController extends Controller
     }
 
     /**
+     * Look up an asset by scanned QR Code / barcode / asset_id / RFID from the web scanner.
+     */
+    public function lookupAsset(Request $request)
+    {
+        $code = $request->input('code') ?: $request->input('asset_id') ?: $request->input('code_asset') ?: $request->input('rfid_uid');
+
+        if (!$code) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode aset tidak boleh kosong.'
+            ], 400);
+        }
+
+        $cleanCode = trim($code);
+        if (str_contains($cleanCode, '/a/')) {
+            $parts = explode('/a/', $cleanCode);
+            $cleanCode = end($parts);
+        } elseif (str_contains($cleanCode, '/assets/code/')) {
+            $parts = explode('/assets/code/', $cleanCode);
+            $cleanCode = end($parts);
+        } elseif (str_contains($cleanCode, '/assets/')) {
+            $parts = explode('/assets/', $cleanCode);
+            $cleanCode = end($parts);
+        }
+        $cleanCode = strtok($cleanCode, '?#');
+
+        // Look up by asset_id, rfid_uid, serial_number, or government_inventory_number
+        $asset = Asset::where('asset_id', $cleanCode)
+            ->orWhere('asset_id', $code)
+            ->orWhere('rfid_uid', $code)
+            ->orWhere('serial_number', $cleanCode)
+            ->orWhere('government_inventory_number', $cleanCode)
+            ->first();
+
+        if (!$asset) {
+            return response()->json([
+                'success' => false,
+                'message' => "Aset '{$cleanCode}' tidak ditemukan dalam database."
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Aset berhasil ditemukan!',
+            'data' => [
+                'id' => $asset->id,
+                'name' => $asset->name,
+                'asset_id' => $asset->asset_id,
+                'rfid_uid' => $asset->rfid_uid,
+                'status' => $asset->status,
+                'building' => $asset->building ?? '-',
+                'floor' => $asset->floor ?? '-',
+                'room' => $asset->room ?? '-',
+                'location' => $asset->room ?? '-',
+                'current_user' => $asset->current_user ?? '-',
+                'url' => route('assets.show', $asset->id)
+            ],
+            'redirect_url' => route('assets.show', $asset->id)
+        ]);
+    }
+
+    /**
      * Proxy Raspberry Pi MJPEG stream over HTTPS to avoid Mixed Content browser blocking.
      */
     public function streamProxy(Request $request)
