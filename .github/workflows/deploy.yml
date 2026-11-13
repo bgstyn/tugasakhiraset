@@ -79,7 +79,7 @@ jobs:
           if [ ! -d "$APP_PATH/.git" ]; then
             echo "⬇️  First deploy — cloning repository..."
             sudo mkdir -p "$APP_PATH"
-            sudo chown $USER:$USER "$APP_PATH"
+            sudo chown -R $USER:$USER "$APP_PATH"
             git clone https://github.com/bgstyn/tugasakhiraset.git "$APP_PATH"
           fi
 
@@ -88,36 +88,41 @@ jobs:
           echo "📦 [1/9] Git pull latest code..."
           git pull origin main
 
-          echo "📝 [2/9] Writing production .env..."
+          echo "🗂️  [2/9] Fix file permissions..."
+          sudo mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache
+          sudo chown -R $USER:$USER storage bootstrap/cache
+          sudo chmod -R 775 storage bootstrap/cache
+          touch storage/logs/laravel.log
+          chmod 664 storage/logs/laravel.log
+
+          echo "📝 [3/9] Writing production .env..."
           cat > .env << 'ENV_EOF'
           ${{ secrets.APP_ENV_PRODUCTION }}
           ENV_EOF
 
-          echo "🔧 [3/9] Install Composer dependencies..."
+          echo "🔧 [4/9] Install Composer dependencies..."
           composer install --no-dev --optimize-autoloader --no-interaction
 
-          echo "🎨 [4/9] Install NPM & build assets..."
+          echo "🎨 [5/9] Install NPM & build assets..."
           npm ci
           npm run build
 
-          echo "🗄️  [5/9] Run database migrations..."
+          echo "🗄️  [6/9] Run database migrations..."
           php artisan migrate --force
 
-          echo "⚡ [6/9] Clear & cache configs..."
+          echo "⚡ [7/9] Clear & cache configs..."
           php artisan config:clear
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
           php artisan event:cache
 
-          echo "🔄 [7/9] Restart queue workers..."
+          echo "🔄 [8/9] Restart queue workers..."
           php artisan queue:restart
 
-          echo "🗂️  [8/9] Set file permissions..."
+          echo "🌐 [9/9] Set final permissions & reload web server..."
           sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-          chmod -R 775 storage bootstrap/cache
-
-          echo "🌐 [9/9] Reload web server..."
+          sudo chmod -R 775 storage bootstrap/cache
           sudo systemctl reload nginx 2>/dev/null || \
           sudo systemctl reload apache2 2>/dev/null || \
           echo "⚠️  Web server reload skipped"
