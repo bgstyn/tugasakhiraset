@@ -1,0 +1,88 @@
+name: CI/CD — Test & Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────
+  # JOB 1: Run automated tests
+  # ─────────────────────────────────────────
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, pdo, pdo_sqlite, sqlite3, xml, zip, gd, curl
+          coverage: none
+
+      - name: Copy .env for testing
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run PHPUnit tests
+        run: php artisan test --env=testing
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          RFID_API_TOKEN: test-rfid-token
+
+  # ─────────────────────────────────────────
+  # JOB 2: Deploy ke AWS EC2 (hanya jika test lulus & push ke main)
+  # ─────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy to AWS EC2
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Write production .env to EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "echo '${{ secrets.APP_ENV_PRODUCTION }}' > ${{ secrets.EC2_APP_PATH }}/.env"
+
+      - name: Deploy application via SSH
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "bash ${{ secrets.EC2_APP_PATH }}/scripts/deploy.sh"
+
+      - name: Notify deploy success
+        if: success()
+        run: echo "✅ Deploy ke AWS EC2 berhasil pada $(date '+%Y-%m-%d %H:%M:%S')"
+
+      - name: Notify deploy failure
+        if: failure()
+        run: echo "❌ Deploy gagal! Cek log di GitHub Actions."
