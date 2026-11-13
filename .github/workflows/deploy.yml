@@ -67,17 +67,64 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Write production .env to EC2
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "echo '${{ secrets.APP_ENV_PRODUCTION }}' > ${{ secrets.EC2_APP_PATH }}/.env"
-
       - name: Deploy application via SSH
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "bash ${{ secrets.EC2_APP_PATH }}/scripts/deploy.sh"
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'DEPLOY_SCRIPT'
+
+          set -e
+          APP_PATH="${{ secrets.EC2_APP_PATH }}"
+
+          echo "📁 [0/9] Checking project directory..."
+          if [ ! -d "$APP_PATH/.git" ]; then
+            echo "⬇️  First deploy — cloning repository..."
+            sudo mkdir -p "$APP_PATH"
+            sudo chown $USER:$USER "$APP_PATH"
+            git clone https://github.com/bgstyn/tugasakhiraset.git "$APP_PATH"
+          fi
+
+          cd "$APP_PATH"
+
+          echo "📦 [1/9] Git pull latest code..."
+          git pull origin main
+
+          echo "📝 [2/9] Writing production .env..."
+          cat > .env << 'ENV_EOF'
+          ${{ secrets.APP_ENV_PRODUCTION }}
+          ENV_EOF
+
+          echo "🔧 [3/9] Install Composer dependencies..."
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+          echo "🎨 [4/9] Install NPM & build assets..."
+          npm ci
+          npm run build
+
+          echo "🗄️  [5/9] Run database migrations..."
+          php artisan migrate --force
+
+          echo "⚡ [6/9] Clear & cache configs..."
+          php artisan config:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan event:cache
+
+          echo "🔄 [7/9] Restart queue workers..."
+          php artisan queue:restart
+
+          echo "🗂️  [8/9] Set file permissions..."
+          sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+          chmod -R 775 storage bootstrap/cache
+
+          echo "🌐 [9/9] Reload web server..."
+          sudo systemctl reload nginx 2>/dev/null || \
+          sudo systemctl reload apache2 2>/dev/null || \
+          echo "⚠️  Web server reload skipped"
+
+          echo ""
+          echo "✅ Deploy selesai pada $(date '+%Y-%m-%d %H:%M:%S')"
+          DEPLOY_SCRIPT
 
       - name: Notify deploy success
         if: success()
@@ -86,3 +133,4 @@ jobs:
       - name: Notify deploy failure
         if: failure()
         run: echo "❌ Deploy gagal! Cek log di GitHub Actions."
+
