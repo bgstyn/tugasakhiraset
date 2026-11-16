@@ -78,11 +78,48 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Write production .env to EC2
+      - name: Preserve or initialize production .env
+        env:
+          APP_ENV_PRODUCTION: ${{ secrets.APP_ENV_PRODUCTION }}
+          EC2_APP_PATH: ${{ secrets.EC2_APP_PATH }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
-          printf '%s' '${{ secrets.APP_ENV_PRODUCTION }}' | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "cat > ${{ secrets.EC2_APP_PATH }}/.env"
+          set -euo pipefail
+          remote=(ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "$EC2_USERNAME@$EC2_HOST")
+          printf -v env_path '%q' "$EC2_APP_PATH/.env"
+          if "${remote[@]}" "test -e $env_path || test -L $env_path"; then
+            echo 'Using existing production .env'
+            exit 0
+          else
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              exit "$status"
+            fi
+          fi
+
+          if [ -z "$APP_ENV_PRODUCTION" ]; then
+            echo 'Production .env is missing and APP_ENV_PRODUCTION is empty.' >&2
+            exit 1
+          fi
+
+          initialize=$(cat <<'INITIALIZE_ENV'
+          set -eu
+          env_file=$1
+          temporary=$(mktemp "${env_file}.XXXXXX")
+          trap 'rm -f -- "$temporary"' EXIT
+          cat > "$temporary"
+          if ln -T -- "$temporary" "$env_file"; then
+            echo 'Initialized production .env'
+          elif [ -e "$env_file" ] || [ -L "$env_file" ]; then
+            echo 'Using existing production .env'
+          else
+            exit 1
+          fi
+          INITIALIZE_ENV
+          )
+          printf -v command 'bash -c %q -- %s' "$initialize" "$env_path"
+          printf '%s' "$APP_ENV_PRODUCTION" | "${remote[@]}" "$command"
 
       - name: Deploy application via SSH
         run: |

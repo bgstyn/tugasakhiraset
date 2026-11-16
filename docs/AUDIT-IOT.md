@@ -16,7 +16,7 @@ Header `Idempotency-Key` opsional untuk kedua POST tersebut. Request lama tanpa 
 
 ## Urutan pemasangan dan migrasi
 
-1. Uji di staging dengan MySQL dan PHP 8.2 atau versi yang kompatibel dengan `composer.lock`. Aktifkan ekstensi GD di PHP CLI dan PHP web server. Pastikan domain publik mengarah ke Laravel dan sertifikat HTTPS valid. Set `APP_URL=https://domain-publik-anda` serta `RFID_API_TOKEN` lewat cara pengelolaan konfigurasi yang sudah dipakai. Gunakan token yang sama pada `API_TOKEN` di Pi. Pipeline lama punya langkah penulisan ulang `.env` dari secret CI. Jika memakai pipeline itu, verifikasi konfigurasi yang memang dikelola pipeline sebelum push ke `main`.
+1. Uji di staging dengan MySQL dan PHP 8.2 atau versi yang kompatibel dengan `composer.lock`. Aktifkan ekstensi GD di PHP CLI dan PHP web server. Pastikan domain publik mengarah ke Laravel dan sertifikat HTTPS valid. Set `APP_URL=https://domain-publik-anda` serta `RFID_API_TOKEN` lewat cara pengelolaan konfigurasi yang sudah dipakai. Gunakan token yang sama pada `API_TOKEN` di Pi. Push ke `main` memicu tes dan deploy otomatis. Pipeline memakai `.env` yang sudah ada di server dan membaca secret `APP_ENV_PRODUCTION` untuk mengisi file hanya saat file belum ada.
 2. Sebelum migrasi, buat backup database dan QR lama di direktori privat di luar web root. Jalankan dari root proyek Laravel. Ganti nama database dan pengguna dengan nilai lingkungan Anda. Periksa kedua arsip berhasil dibuat.
 
    ```bash
