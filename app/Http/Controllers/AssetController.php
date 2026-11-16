@@ -388,48 +388,6 @@ class AssetController extends Controller
     }
 
     /**
-     * Proxy Raspberry Pi MJPEG stream over HTTPS to avoid Mixed Content browser blocking.
-     */
-    public function streamProxy(Request $request)
-    {
-        $ip = $request->query('ip', '192.168.100.107');
-        $url = "http://{$ip}:5000/video_feed";
-
-        $ctx = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'timeout' => 4,
-            ]
-        ]);
-
-        $stream = @fopen($url, 'rb', false, $ctx);
-        if (!$stream) {
-            return response()->json(['error' => 'Kamera RasPi offline atau tidak dapat dijangkau.'], 503);
-        }
-
-        return response()->stream(function() use ($stream) {
-            while (!feof($stream)) {
-                $buffer = @fread($stream, 8192);
-                if ($buffer === false || $buffer === '') {
-                    break;
-                }
-                echo $buffer;
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
-                flush();
-            }
-            @fclose($stream);
-        }, 200, [
-            'Content-Type' => 'multipart/x-mixed-replace; boundary=frame',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-            'Pragma' => 'no-cache',
-            'Expires' => '0',
-        ]);
-    }
-
-
-    /**
      * Display the global change history logs.
      */
     public function history()
@@ -637,7 +595,8 @@ class AssetController extends Controller
     public function showRfidValidator(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            $rfidUid = $request->input('rfid_uid');
+            $validated = $request->validate(['rfid_uid' => 'required|string|max:255']);
+            $rfidUid = $validated['rfid_uid'];
             $asset = Asset::where('rfid_uid', $rfidUid)->first();
 
             if (!$asset) {

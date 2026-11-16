@@ -58,7 +58,7 @@
             </span>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" role="region" aria-label="Pratinjau aset yang akan ditambahkan" tabindex="0">
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
                     <tr class="bg-slate-950 text-slate-400 font-semibold text-xs border-b border-slate-850 uppercase tracking-wider">

@@ -14,11 +14,9 @@ use App\Http\Controllers\RfidController;
 |
 */
 
-Route::get('/rfid/latest-scan', [RfidController::class, 'getLatestScan'])->name('api.rfid.latest');
-Route::post('/raspi/frame', [RfidController::class, 'uploadFrame'])->name('api.raspi.frame');
-
-
 Route::middleware('rfid.token')->group(function () {
+    Route::get('/rfid/latest-scan', [RfidController::class, 'getLatestScan'])->name('api.rfid.latest');
+    Route::post('/raspi/frame', [RfidController::class, 'uploadFrame'])->name('api.raspi.frame');
     Route::middleware(\App\Http\Middleware\RecordRfidEvent::class)->group(function () {
         Route::post('/rfid-scan', [RfidController::class, 'scan'])->name('api.rfid.scan');
         Route::post('/rfid/register', [RfidController::class, 'register'])->name('api.rfid.register');

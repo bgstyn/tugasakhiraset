@@ -102,7 +102,7 @@
                 </a>
             </div>
         @else
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" role="region" aria-label="Aset dalam paket" tabindex="0">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-800/80 bg-slate-900/80">

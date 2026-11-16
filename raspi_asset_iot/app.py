@@ -14,7 +14,7 @@ import threading
 import time
 from pathlib import Path
 
-from api import ApiClient
+from api import ApiClient, FrameUploader
 from config import Config
 from core import Outbox, RegistrationPair, normalize_qr
 
@@ -28,9 +28,10 @@ def diagnose(config):
     print('SQLite:', config.db_path)
     print('LCD:', 'aktif' if config.lcd_enabled else 'nonaktif', hex(config.lcd_address))
     print('Buzzer:', 'aktif' if config.buzzer_enabled else 'nonaktif')
+    print('Streaming kamera:', 'aktif' if config.camera_enabled and config.camera_stream_enabled else 'nonaktif')
     print('LED:', config.led_type, 'aktif' if config.led_enabled else 'nonaktif')
     print('GPIO switch:',config.switch_check_gpio, config.switch_register_gpio)
-    for path in ('/dev/spidev0.0', '/dev/i2c-1', '/dev/video0'):
+    for path in (f'/dev/spidev0.{config.rfid_spi_device}', '/dev/i2c-1', f'/dev/video{config.camera_index}'):
         print(path, 'ADA' if Path(path).exists() else 'TIDAK ADA')
     for module in ('cv2', 'spidev', 'gpiozero', 'lgpio', 'smbus', 'requests', 'dotenv'):
         try:
@@ -80,7 +81,7 @@ class Controller:
         self.outbox = Outbox(config.db_path, config.pending_limit)
         self.pin_factory = LGPIOFactory()
         self.indicator = self.switch = None
-        self.sender = self.cam = self.reader = None
+        self.sender = self.cam = self.reader = self.frames = None
         try:
             self.indicator = Indicator(self.pin_factory, config)
             self.switch = ModeSwitch(self.pin_factory, config.switch_check_gpio, config.switch_register_gpio)
@@ -94,7 +95,13 @@ class Controller:
         self.latest_event_times = {}  # local-only; bound in cleanup
         api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
         self.sender = Sender(self.outbox, api, self.events, self.stop)
-        self.cam = WebcamWorker(self.events, self.stop, config.camera_index) if config.camera_enabled else None
+        if config.camera_enabled:
+            if config.camera_stream_enabled:
+                frame_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
+                self.frames = FrameUploader(frame_api, self.stop)
+            self.cam = WebcamWorker(
+                self.events, self.stop, config.camera_index, self.frames.submit if self.frames else None,
+            )
         self.reader = RfidWorker(self.events, self.stop, self.pin_factory, config.rfid_uid_format, config.rfid_rst_gpio, config.rfid_spi_device) if config.rfid_enabled else None
 
     def show(self, line1, line2, color=None, seconds=2.2, beeps=0):
@@ -187,6 +194,8 @@ class Controller:
     def run(self):
         self.update_mode()
         self.sender.start()
+        if self.frames:
+            self.frames.start()
         if self.cam:
             self.cam.start()
         if self.reader:
@@ -235,7 +244,7 @@ class Controller:
             try:
                 if self.switch:
                     self.switch.close()
-                for worker in (self.reader, self.cam, self.sender):
+                for worker in (self.reader, self.cam, self.sender, self.frames):
                     if worker and worker.ident is not None:
                         worker.join(timeout=1)
             finally:

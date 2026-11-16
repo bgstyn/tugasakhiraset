@@ -9,6 +9,7 @@ Program Python **headless** untuk **Raspberry Pi 5 / Raspberry Pi OS Trixie 64-b
 - LCD 16×2 PCF8574 I2C (alamat default `0x27`) menampilkan mode, proses, hasil, dan antrean. LED hijau menandakan sukses, merah menandakan kegagalan scan atau validasi, dan biru menandakan kegagalan komunikasi server.
 - SQLite menyimpan scan dengan UUID sebelum dikirim. Saat jaringan kembali, pengirim mengirim ulang UUID yang sama dengan jeda 5 detik hingga 5 menit. Laravel versi baru menyimpan hasil berdasarkan UUID agar respons yang hilang tidak mengulang perubahan aset atau riwayat.
 - Scanner tidak memerlukan GUI dan dapat berjalan saat boot via `systemd`.
+- Webcam yang sama dipakai untuk membaca QR dan mengirim JPEG terbaru ke Laravel. Buka **Scan aset → Raspberry Pi** di website melalui HTTPS. `CAMERA_STREAM_ENABLED=false` mematikan upload gambar dan tetap mengizinkan pembacaan QR.
 - Saat jaringan putus, status aset tidak mungkin divalidasi oleh Laravel; hasil scan cek **ditunda**, bukan dianggap terdaftar.
 
 ## Penting: periksa instalasi hardware yang sudah ada
@@ -154,6 +155,8 @@ Antrean disimpan di `data/queue.sqlite3` dengan WAL dan `synchronous=FULL`. Jala
 ## Keterbatasan dan langkah lanjutan
 
 - **Belum diuji secara fisik** dengan modul pengguna; penugasan GPIO dan jenis LED/buzzer/LCD harus diverifikasi terlebih dahulu.
-- `raspi_scanner.py` merupakan program live MJPEG/AWS tersendiri. Jalankan program itu di perangkat terpisah jika scanner GPIO sudah memakai webcam pada Pi yang sama.
+- Service `asset-iot@.service` sudah menangani QR, RFID, dan upload kamera. Hentikan `raspi_scanner.py` lama pada Pi yang memakai service ini agar kedua proses tidak berebut webcam. Website mengambil gambar dari Laravel melalui domain publik. Port 5000 di Pi tidak diperlukan untuk alur ini.
+- Jika website menunggu gambar, buka `journalctl -u "asset-iot@$(whoami).service" -n 80 --no-pager`. Pesan `Frame kamera diterima Laravel` menunjukkan upload berhasil. HTTP 401 atau 403 perlu pengecekan `API_TOKEN` dan `RFID_API_TOKEN` di Laravel. Jika log menyebut `/dev/videoN` tidak terbuka, lihat `v4l2-ctl --list-devices`, lalu cocokkan `CAMERA_INDEX`. Untuk menguji stream RFID, set switch ke mode Cek dan tempel kartu yang UID-nya terdaftar.
+- Jika LCD tidak tersedia ketika service mulai, scan dan upload kamera tetap berjalan. Setelah koneksi I2C atau paket LCD dibetulkan, restart service untuk menginisialisasi LCD.
 - Aset yang discan saat offline bisa saja berubah statusnya sebelum akhirnya diperiksa ketika online; LCD tidak menyatakan registered/unregistered saat offline.
 - Sebelum memasang LCD maupun buzzer, cocokkan tegangan pada label modul dengan sumber listriknya. Hindari memberi 5 V ke GPIO Raspberry Pi 5.

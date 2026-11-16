@@ -7,6 +7,8 @@ use App\Models\AssetHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
 class RfidController extends Controller
@@ -131,6 +133,9 @@ class RfidController extends Controller
         $responseData = [
             'success' => true,
             'timestamp' => time(),
+            'received_at' => (int) (microtime(true) * 1000),
+            'scan_id' => $request->attributes->get('rfid_event_id') ?? (string) Str::uuid(),
+            'source' => $rfidUid ? 'rfid' : 'qr',
             'message' => $updated ? 'Aset berhasil diperbarui via RFID' : 'Aset berhasil ditemukan',
             'redirect_url' => route('assets.show', $asset->id),
             'data' => [
@@ -147,14 +152,18 @@ class RfidController extends Controller
             ]
         ];
 
-        // Store latest scan in cache for real-time web UI auto-redirection
+        $this->publishScan($request, $responseData);
+
+        return response()->json($responseData, 200);
+    }
+
+    private function publishScan(Request $request, array $responseData): void
+    {
         if ($request->attributes->has('rfid_event_id')) {
             DB::afterCommit(fn () => Cache::put('latest_asset_scan', $responseData, 120));
         } else {
             Cache::put('latest_asset_scan', $responseData, 120);
         }
-
-        return response()->json($responseData, 200);
     }
 
     /**
@@ -166,7 +175,7 @@ class RfidController extends Controller
         return response()->json([
             'success' => !!$latest,
             'data' => $latest
-        ]);
+        ])->header('Cache-Control', 'no-store');
     }
 
 
@@ -226,8 +235,12 @@ class RfidController extends Controller
             ]);
         }
 
-        return response()->json([
+        $responseData = [
             'success' => true,
+            'timestamp' => time(),
+            'received_at' => (int) (microtime(true) * 1000),
+            'scan_id' => $request->attributes->get('rfid_event_id') ?? (string) Str::uuid(),
+            'source' => 'rfid',
             'message' => 'RFID UID berhasil didaftarkan ke aset',
             'redirect_url' => route('assets.show', $asset->id),
             'data' => [
@@ -236,8 +249,16 @@ class RfidController extends Controller
                 'asset_id' => $asset->asset_id,
                 'rfid_uid' => $asset->rfid_uid,
                 'rfid_status' => $asset->rfid_status,
+                'status' => $asset->status,
+                'building' => $asset->building,
+                'floor' => $asset->floor,
+                'room' => $asset->room,
+                'current_user' => $asset->current_user,
             ]
-        ], 200);
+        ];
+        $this->publishScan($request, $responseData);
+
+        return response()->json($responseData, 200);
     }
 
     /**
@@ -398,109 +419,77 @@ class RfidController extends Controller
         ], 200);
     }
 
-    /**
-     * API Endpoint for Raspberry Pi to upload live JPEG camera frames to AWS.
-     * Uses direct file storage for reliability (database cache can't handle binary JPEG blobs well).
-     */
     public function uploadFrame(Request $request)
     {
-        if ($request->hasFile('frame')) {
-            $file = $request->file('frame');
-            $framePath = storage_path('app/raspi_frame.jpg');
-            $metaPath = storage_path('app/raspi_frame_meta.json');
+        $validated = $request->validate([
+            'frame' => 'required|file|mimetypes:image/jpeg|max:512',
+        ]);
 
-            // Ensure directory exists
-            $dir = dirname($framePath);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
+        $path = storage_path('app/raspi_frame.jpg');
+        File::ensureDirectoryExists(dirname($path));
+        File::replace($path, File::get($validated['frame']->getRealPath()), 0640);
 
-            // Write frame file atomically (write to temp then rename)
-            $tmpPath = $framePath . '.tmp';
-            file_put_contents($tmpPath, file_get_contents($file->getRealPath()));
-            rename($tmpPath, $framePath);
-
-            // Write metadata
-            file_put_contents($metaPath, json_encode(['last_seen' => time()]));
-
-            return response()->json(['success' => true], 200);
-        }
-
-        return response()->json(['success' => false, 'message' => 'No frame file uploaded.'], 400);
+        return response()->json(['success' => true]);
     }
 
-    /**
-     * API / Web Endpoint to serve the latest live JPEG camera frame.
-     * Reads from file storage. Returns a placeholder image if offline (not JSON, to prevent img onerror).
-     */
+    private function latestFrame(): ?string
+    {
+        $path = storage_path('app/raspi_frame.jpg');
+        clearstatcache(true, $path);
+        $lastSeen = @filemtime($path);
+
+        if ($lastSeen === false || time() - $lastSeen >= 15) {
+            return null;
+        }
+
+        return @file_get_contents($path) ?: null;
+    }
+
     public function getLiveFrame()
     {
-        $framePath = storage_path('app/raspi_frame.jpg');
-        $metaPath = storage_path('app/raspi_frame_meta.json');
+        $frame = $this->latestFrame();
+        $headers = [
+            'Cache-Control' => 'no-store',
+            'X-Raspi-Status' => $frame === null ? 'offline' : 'online',
+        ];
 
-        $isOnline = false;
-        if (file_exists($framePath) && file_exists($metaPath)) {
-            $meta = json_decode(file_get_contents($metaPath), true);
-            $lastSeen = $meta['last_seen'] ?? 0;
-            // Consider online if frame was received within last 15 seconds
-            if ((time() - $lastSeen) < 15) {
-                $isOnline = true;
-            }
+        if ($frame === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Belum ada gambar terbaru dari Raspberry Pi.',
+                'status' => 'offline',
+            ], 200, $headers);
         }
 
-        if ($isOnline) {
-            $frame = file_get_contents($framePath);
-            return response($frame, 200, [
-                'Content-Type' => 'image/jpeg',
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma' => 'no-cache',
-                'Expires' => '0',
-                'X-Raspi-Status' => 'online',
-            ]);
-        }
-
-        // Return a black placeholder JPEG with "OFFLINE" text instead of JSON error
-        // This prevents the <img> tag from firing onerror permanently
-        return response()->json([
-            'success' => false,
-            'message' => 'Kamera RasPi offline.',
-            'status' => 'offline'
-        ], 200, [
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-            'X-Raspi-Status' => 'offline',
+        return response($frame, 200, $headers + [
+            'Content-Type' => 'image/jpeg',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
-    /**
-     * Web Endpoint to stream live Raspberry Pi camera MJPEG frames on AWS over HTTPS.
-     * Reads from file storage instead of cache.
-     */
     public function getLiveStream()
     {
-        $framePath = storage_path('app/raspi_frame.jpg');
+        if ($this->latestFrame() === null) {
+            return response()->json(['error' => 'Kamera Raspberry Pi sedang offline.'], 503);
+        }
 
-        return response()->stream(function() use ($framePath) {
-            for ($i = 0; $i < 300; $i++) {
-                if (file_exists($framePath)) {
-                    $frame = @file_get_contents($framePath);
-                    if ($frame) {
-                        echo "--frame\r\n";
-                        echo "Content-Type: image/jpeg\r\n\r\n";
-                        echo $frame;
-                        echo "\r\n";
-                    }
+        return response()->stream(function () {
+            for ($i = 0; $i < 60 && ! connection_aborted(); $i++) {
+                $frame = $this->latestFrame();
+                if ($frame === null) {
+                    break;
                 }
+                echo "--frame\r\nContent-Type: image/jpeg\r\n\r\n".$frame."\r\n";
                 if (ob_get_level() > 0) {
                     @ob_flush();
                 }
-                @flush();
-                usleep(100000); // ~10 FPS
+                flush();
+                usleep(500000);
             }
         }, 200, [
             'Content-Type' => 'multipart/x-mixed-replace; boundary=frame',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-            'Pragma' => 'no-cache',
-            'Expires' => '0',
+            'Cache-Control' => 'no-store',
+            'X-Accel-Buffering' => 'no',
         ]);
     }
 }

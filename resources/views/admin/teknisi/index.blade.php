@@ -31,7 +31,7 @@
             <p class="text-xs text-slate-500 mt-1">Tambahkan teknisi baru untuk memulai.</p>
         </div>
     @else
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" role="region" aria-label="Daftar teknisi" tabindex="0">
             <table class="w-full min-w-[900px] text-sm" id="teknisi-table">
                 <thead>
                     <tr class="border-b border-slate-800 bg-slate-950/40">

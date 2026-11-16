@@ -33,6 +33,7 @@ class Config:
     rfid_uid_format: str = os.getenv('RFID_UID_FORMAT', 'hex').strip().lower()
     camera_index: int = int(os.getenv('CAMERA_INDEX', '0'))
     camera_enabled: bool = _bool('CAMERA_ENABLED', True)
+    camera_stream_enabled: bool = _bool('CAMERA_STREAM_ENABLED', True)
     rfid_enabled: bool = _bool('RFID_ENABLED', True)
     scan_repeat_seconds: float = float(os.getenv('SCAN_REPEAT_SECONDS', '3.0'))
     pair_timeout_seconds: float = float(os.getenv('PAIR_TIMEOUT_SECONDS', '90'))

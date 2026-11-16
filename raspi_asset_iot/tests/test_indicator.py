@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from app import Controller
+from config import Config
 from core import Result
 from hardware import Indicator
 
@@ -79,6 +80,17 @@ class TestIndicator(unittest.TestCase):
         self.assertTrue(all(led.level and led.closed for led in self.indicator.led.values()))
         self.assertFalse(buzzer.level)
         self.assertTrue(buzzer.closed)
+
+    def test_missing_lcd_does_not_disable_led_feedback(self):
+        config = Config(led_enabled=True, buzzer_enabled=False, lcd_enabled=True, led_type='common_anode')
+        gpiozero = SimpleNamespace(DigitalOutputDevice=FakeOutput)
+        with patch.dict(sys.modules, {'gpiozero': gpiozero}), patch('hardware.Lcd1602', side_effect=OSError):
+            with self.assertLogs('hardware', level='ERROR'):
+                indicator = Indicator(None, config)
+        self.addCleanup(indicator.close)
+        self.assertIsNone(indicator.lcd)
+        indicator.color('success')
+        self.assertFalse(indicator.led['green'].level)
 
     def test_scan_status_uses_correct_feedback_after_api_result(self):
         controller = Controller.__new__(Controller)

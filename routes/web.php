@@ -39,7 +39,7 @@ Route::middleware(['auth', 'staff.session'])->group(function () {
     Route::get('/assets/scan', [AssetController::class, 'scan'])->name('assets.scan');
     Route::post('/assets/scan/lookup', [AssetController::class, 'lookupAsset'])->name('assets.scan.lookup');
     Route::get('/assets/scan/latest', [\App\Http\Controllers\RfidController::class, 'getLatestScan'])->name('assets.scan.latest');
-    Route::get('/assets/scan/proxy-stream', [AssetController::class, 'streamProxy'])->name('assets.scan.proxy-stream');
+    Route::get('/assets/scan/proxy-stream', [\App\Http\Controllers\RfidController::class, 'getLiveStream'])->name('assets.scan.proxy-stream');
     Route::get('/assets/scan/live-frame', [\App\Http\Controllers\RfidController::class, 'getLiveFrame'])->name('assets.scan.live-frame');
     Route::get('/assets/scan/live-stream', [\App\Http\Controllers\RfidController::class, 'getLiveStream'])->name('assets.scan.live-stream');
 

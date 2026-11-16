@@ -38,7 +38,7 @@
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/50">
+    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/50" role="region" aria-label="Daftar lokasi" tabindex="0">
         <table class="w-full min-w-[700px] text-left border-collapse">
             <thead>
                 <tr class="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">

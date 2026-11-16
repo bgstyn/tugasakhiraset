@@ -238,11 +238,14 @@ class Indicator:
             if config.buzzer_enabled:
                 self.buzzer = DigitalOutputDevice(config.buzzer_gpio, active_high=True, initial_value=False, pin_factory=pin_factory)
                 self.beep_thread.start()
-            if config.lcd_enabled:
-                self.lcd = Lcd1602(config.lcd_address)
         except Exception:
             self.close()
             raise
+        if config.lcd_enabled:
+            try:
+                self.lcd = Lcd1602(config.lcd_address)
+            except (ImportError, OSError):
+                LOG.exception('LCD tidak tersedia; scanner tetap berjalan')
 
     def display(self, line1, line2):
         current = (line1[:16], line2[:16])
@@ -335,9 +338,10 @@ class ModeSwitch:
 
 
 class WebcamWorker(threading.Thread):
-    def __init__(self, events, stop, camera_index=0):
+    def __init__(self, events, stop, camera_index=0, publish_frame=None):
         super().__init__(daemon=True, name='webcam')
         self.events, self.stop, self.index = events, stop, camera_index
+        self.publish_frame = publish_frame
         self.reset_detection = threading.Event()
 
     def _emit(self, event):
@@ -358,6 +362,7 @@ class WebcamWorker(threading.Thread):
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             last, missing_since, unreadable_since, last_bad_report = None, None, None, 0
+            next_frame_at = 0
             try:
                 while not self.stop.is_set():
                     if self.reset_detection.is_set():
@@ -366,8 +371,13 @@ class WebcamWorker(threading.Thread):
                     ok, frame = cap.read()
                     if not ok:
                         raise RuntimeError('Webcam gagal membaca frame')
-                    decoded, corners, _ = detector.detectAndDecode(frame)
                     now = time.monotonic()
+                    if self.publish_frame and now >= next_frame_at:
+                        next_frame_at = now + 0.5
+                        encoded, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 65])
+                        if encoded:
+                            self.publish_frame(jpeg.tobytes())
+                    decoded, corners, _ = detector.detectAndDecode(frame)
                     if decoded:
                         missing_since = None
                         unreadable_since = None

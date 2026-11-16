@@ -80,7 +80,7 @@
             <p class="text-sm">Tidak ada tiket perbaikan yang terdaftar.</p>
         </div>
     @else
-        <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <div class="overflow-x-auto rounded-xl border border-slate-800" role="region" aria-label="Daftar tiket perbaikan" tabindex="0">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-950/60 border-b border-slate-800 text-[10px] uppercase font-bold tracking-wider text-slate-400">
