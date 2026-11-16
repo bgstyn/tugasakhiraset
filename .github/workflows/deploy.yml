@@ -139,6 +139,14 @@ jobs:
 
           cd "$APP_PATH"
 
+          PHP_SERIES=$(php -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')
+          if ! php -r 'exit(extension_loaded("gd") ? 0 : 1);'; then
+            echo "Installing GD for PHP $PHP_SERIES..."
+            sudo -n apt-get update
+            sudo -n apt-get install -y --no-install-recommends "php${PHP_SERIES}-gd"
+            php -r 'exit(extension_loaded("gd") ? 0 : 1);'
+          fi
+
           echo "📦 [1/9] Git pull latest code..."
           git pull origin main
 
@@ -172,6 +180,9 @@ jobs:
           echo "🌐 [8/9] Set final permissions & reload web server..."
           sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
           sudo chmod -R 775 storage bootstrap/cache
+          if systemctl is-active --quiet "php${PHP_SERIES}-fpm"; then
+            sudo systemctl reload "php${PHP_SERIES}-fpm"
+          fi
           sudo systemctl reload nginx 2>/dev/null || \
           sudo systemctl reload apache2 2>/dev/null || \
           echo "⚠️  Web server reload skipped"
