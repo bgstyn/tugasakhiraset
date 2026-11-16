@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\AssetApproval;
 use App\Models\AssetHistory;
+use App\Services\AssetQrCode;
 use Illuminate\Http\Request;
 
 class AssetController extends Controller
@@ -349,7 +350,7 @@ class AssetController extends Controller
             $parts = explode('/assets/', $cleanCode);
             $cleanCode = end($parts);
         }
-        $cleanCode = strtok($cleanCode, '?#');
+        $cleanCode = rawurldecode(strtok($cleanCode, '?#') ?: '');
 
         // Look up by asset_id, rfid_uid, serial_number, or government_inventory_number
         $asset = Asset::where('asset_id', $cleanCode)
@@ -489,9 +490,17 @@ class AssetController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    /**
-     * Redirect short URL QR scans to the official public show page.
-     */
+    public function qrImage(Asset $asset, string $format, AssetQrCode $qrCode)
+    {
+        $image = $qrCode->render($asset, $format);
+
+        return response($image->getString(), 200, [
+            'Content-Type' => $image->getMimeType(),
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function showByCode($asset_id)
     {
         $asset = Asset::where('asset_id', $asset_id)->firstOrFail();

@@ -32,6 +32,8 @@ Route::get('/', function () {
 // ──────────────────────────────────────────────────────
 Route::middleware(['auth', 'staff.session'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/assets/{asset}/qr/{format}', [AssetController::class, 'qrImage'])
+        ->whereNumber('asset')->whereIn('format', ['png', 'svg'])->name('assets.qr');
 
     // QR Code Scanner Page & Live IoT Stream Routes
     Route::get('/assets/scan', [AssetController::class, 'scan'])->name('assets.scan');
@@ -119,8 +121,7 @@ Route::get('/assets/{asset}', [AssetController::class, 'show'])
 
 // Public Short URL for QR code scan
 Route::get('/a/{inventory_code}', [AssetController::class, 'showByCode'])
-    ->name('assets.public.short-show')
-    ->where('inventory_code', '[A-Za-z0-9\-]+');
+    ->name('assets.public.short-show');
 
 // Public Damage Reporting
 Route::get('/assets/{asset}/report', [TicketController::class, 'createPublic'])->name('tickets.public.create')->whereNumber('asset');

@@ -19,8 +19,10 @@ Route::post('/raspi/frame', [RfidController::class, 'uploadFrame'])->name('api.r
 
 
 Route::middleware('rfid.token')->group(function () {
-    Route::post('/rfid-scan', [RfidController::class, 'scan'])->name('api.rfid.scan');
-    Route::post('/rfid/register', [RfidController::class, 'register'])->name('api.rfid.register');
+    Route::middleware(\App\Http\Middleware\RecordRfidEvent::class)->group(function () {
+        Route::post('/rfid-scan', [RfidController::class, 'scan'])->name('api.rfid.scan');
+        Route::post('/rfid/register', [RfidController::class, 'register'])->name('api.rfid.register');
+    });
     Route::post('/rfid/validate', [RfidController::class, 'validateRfid'])->name('api.rfid.validate');
     Route::get('/rfid/asset', [RfidController::class, 'getAssetByRfid'])->name('api.rfid.asset');
     Route::get('/rfid/sync', [RfidController::class, 'sync'])->name('api.rfid.sync');

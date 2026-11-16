@@ -125,10 +125,6 @@ class Asset extends Model
             }
         });
 
-        static::saved(function ($asset) {
-            $asset->generateQrFiles();
-        });
-
         static::deleting(function ($asset) {
             if ($asset->status === 'write_off') {
                 throw new \Exception("Aset dengan status Write Off bersifat arsip permanen dan tidak boleh dihapus.");
@@ -136,81 +132,23 @@ class Asset extends Model
         });
     }
 
-    /**
-     * Download and store PNG & SVG formats of QR code locally.
-     */
-    public function generateQrFiles()
+    public function publicQrUrl(): string
     {
-        if (empty($this->asset_id)) {
-            return;
-        }
+        $path = route('assets.public.short-show', [
+            'inventory_code' => rawurlencode($this->asset_id),
+        ], false);
 
-        $dir = public_path('qrcodes');
-        if (!file_exists($dir)) {
-            @mkdir($dir, 0755, true);
-        }
-
-        $qrUrl = route('assets.public.short-show', $this->asset_id);
-
-        // Fetch & save PNG
-        $pngPath = $dir . '/' . $this->asset_id . '.png';
-        if (!file_exists($pngPath) || @filesize($pngPath) === 0) {
-            try {
-                $png = @file_get_contents("https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=" . urlencode($qrUrl) . "&format=png");
-                if ($png) {
-                    @file_put_contents($pngPath, $png);
-                }
-            } catch (\Exception $e) {
-                // Fail silently
-            }
-        }
-
-        // Fetch & save SVG
-        $svgPath = $dir . '/' . $this->asset_id . '.svg';
-        if (!file_exists($svgPath) || @filesize($svgPath) === 0) {
-            try {
-                $svg = @file_get_contents("https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=" . urlencode($qrUrl) . "&format=svg");
-                if ($svg) {
-                    @file_put_contents($svgPath, $svg);
-                }
-            } catch (\Exception $e) {
-                // Fail silently
-            }
-        }
+        return rtrim(config('app.url'), '/').$path;
     }
 
-    /**
-     * Get local URL for QR PNG file, with API fallback if not ready.
-     */
-    public function getQrPngUrlAttribute()
+    public function getQrPngUrlAttribute(): string
     {
-        $filename = "qrcodes/{$this->asset_id}.png";
-        $path = public_path($filename);
-        if (!file_exists($path) || @filesize($path) === 0) {
-            $this->generateQrFiles();
-        }
-        if (file_exists($path) && @filesize($path) > 0) {
-            return asset($filename);
-        }
-        $qrUrl = route('assets.public.short-show', $this->asset_id);
-        return "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=" . urlencode($qrUrl) . "&format=png";
+        return route('assets.qr', ['asset' => $this, 'format' => 'png'], false);
     }
 
-    /**
-     * Get local URL for QR SVG file, with API fallback if not ready.
-     */
-    public function getQrSvgUrlAttribute()
+    public function getQrSvgUrlAttribute(): string
     {
-        $filename = "qrcodes/{$this->asset_id}.svg";
-        $path = public_path($filename);
-        if (!file_exists($path) || @filesize($path) === 0) {
-            $this->generateQrFiles();
-        }
-        if (file_exists($path) && @filesize($path) > 0) {
-            return asset($filename);
-        }
-        $qrUrl = route('assets.public.short-show', $this->asset_id);
-        return "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=" . urlencode($qrUrl) . "&format=svg";
+        return route('assets.qr', ['asset' => $this, 'format' => 'svg'], false);
     }
 
     /**

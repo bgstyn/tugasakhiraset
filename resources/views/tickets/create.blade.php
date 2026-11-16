@@ -22,7 +22,7 @@
 
         {{-- Header --}}
         <div class="border-b border-slate-800/60 pb-5 flex items-center gap-3">
-            <a href="{{ route('assets.public.short-show', $asset->asset_id) }}" class="p-2 bg-slate-950/60 border border-slate-850 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition">
+            <a href="{{ $asset->publicQrUrl() }}" class="p-2 bg-slate-950/60 border border-slate-850 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -44,7 +44,7 @@
         @endif
 
         {{-- Form --}}
-        <form action="{{ route('tickets.public.store', $asset->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form action="{{ route('tickets.public.store', $asset->id, false) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             {{-- Reporter Name --}}

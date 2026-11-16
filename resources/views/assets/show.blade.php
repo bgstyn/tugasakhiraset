@@ -173,6 +173,9 @@
             </svg>
             Kembali ke Daftar Aset
         </a>
+        <a href="{{ route('tickets.public.create', $asset->id, false) }}" class="text-xs font-semibold text-rose-400 hover:text-rose-300">
+            Laporkan Kerusakan
+        </a>
         
         <!-- Delete Button (Only for admin) -->
         <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aset {{ $asset->name }}?')" class="inline w-full sm:w-auto">

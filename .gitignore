@@ -3,6 +3,8 @@
 .env
 .env.backup
 .env.production
+__pycache__/
+/raspi_asset_iot/data/
 .phpactor.json
 .phpunit.result.cache
 /.fleet

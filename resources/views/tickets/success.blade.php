@@ -61,7 +61,7 @@
 
         {{-- Action --}}
         <div class="pt-2 flex gap-2">
-            <a href="{{ route('assets.public.short-show', $ticket->asset->asset_id) }}" class="flex-1 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 rounded-2xl text-xs font-semibold transition cursor-pointer">
+            <a href="{{ $ticket->asset->publicQrUrl() }}" class="flex-1 py-3.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 rounded-2xl text-xs font-semibold transition cursor-pointer">
                 Kembali ke Info Aset
             </a>
         </div>

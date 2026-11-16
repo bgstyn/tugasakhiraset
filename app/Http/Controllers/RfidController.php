@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\AssetHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class RfidController extends Controller
@@ -39,10 +41,11 @@ class RfidController extends Controller
 
         $rfidUid = $request->input('rfid_uid');
         $assetId = $request->input('asset_id');
+        $assets = Asset::query()->when($request->attributes->has('rfid_event_id'), fn ($query) => $query->lockForUpdate());
         $asset = null;
 
         if ($rfidUid) {
-            $asset = Asset::where('rfid_uid', $rfidUid)->first();
+            $asset = $assets->where('rfid_uid', $rfidUid)->first();
             if (!$asset) {
                 return response()->json([
                     'success' => false,
@@ -62,9 +65,9 @@ class RfidController extends Controller
                 $parts = explode('/assets/', $cleanAssetId);
                 $cleanAssetId = end($parts);
             }
-            $cleanAssetId = strtok($cleanAssetId, '?#');
+            $cleanAssetId = rawurldecode(strtok($cleanAssetId, '?#') ?: '');
 
-            $asset = Asset::where('asset_id', $cleanAssetId)->orWhere('asset_id', $assetId)->first();
+            $asset = $assets->where('asset_id', $cleanAssetId)->orWhere('asset_id', $assetId)->first();
             if (!$asset) {
                 return response()->json([
                     'success' => false,
@@ -145,7 +148,11 @@ class RfidController extends Controller
         ];
 
         // Store latest scan in cache for real-time web UI auto-redirection
-        \Illuminate\Support\Facades\Cache::put('latest_asset_scan', $responseData, 120);
+        if ($request->attributes->has('rfid_event_id')) {
+            DB::afterCommit(fn () => Cache::put('latest_asset_scan', $responseData, 120));
+        } else {
+            Cache::put('latest_asset_scan', $responseData, 120);
+        }
 
         return response()->json($responseData, 200);
     }
@@ -155,7 +162,7 @@ class RfidController extends Controller
      */
     public function getLatestScan()
     {
-        $latest = \Illuminate\Support\Facades\Cache::get('latest_asset_scan');
+        $latest = Cache::get('latest_asset_scan');
         return response()->json([
             'success' => !!$latest,
             'data' => $latest
@@ -168,9 +175,10 @@ class RfidController extends Controller
      */
     public function register(Request $request)
     {
+        $fromOutbox = $request->attributes->has('rfid_event_id');
         $validator = Validator::make($request->all(), [
             'asset_id' => 'required|string',
-            'rfid_uid' => 'required|string|unique:assets,rfid_uid',
+            'rfid_uid' => $fromOutbox ? 'required|string|max:100' : 'required|string|unique:assets,rfid_uid',
         ]);
 
         if ($validator->fails()) {
@@ -184,7 +192,7 @@ class RfidController extends Controller
         $assetId = $request->input('asset_id');
         $rfidUid = $request->input('rfid_uid');
 
-        $asset = Asset::where('asset_id', $assetId)->first();
+        $asset = Asset::where('asset_id', $assetId)->when($fromOutbox, fn ($query) => $query->lockForUpdate())->first();
 
         if (!$asset) {
             return response()->json([
@@ -193,22 +201,30 @@ class RfidController extends Controller
             ], 404);
         }
 
-        $oldValues = ['rfid_uid' => $asset->rfid_uid, 'rfid_status' => $asset->rfid_status];
-        $asset->rfid_uid = $rfidUid;
-        $asset->rfid_status = 'aktif';
-        $asset->save();
+        if ($fromOutbox && (
+            (filled($asset->rfid_uid) && $asset->rfid_uid !== $rfidUid)
+            || Asset::where('rfid_uid', $rfidUid)->whereKeyNot($asset->id)->exists()
+        )) {
+            return response()->json(['success' => false, 'message' => 'RFID atau aset sudah dipasangkan.'], 409);
+        }
 
-        // Record history
-        AssetHistory::create([
-            'asset_id' => $asset->id,
-            'asset_name' => $asset->name,
-            'action' => 'update',
-            'changed_by_name' => 'Raspberry Pi RFID Register',
-            'changed_by_position' => 'IoT Registration Agent',
-            'changed_by_location' => $asset->room ?? 'Scanner',
-            'old_values' => $oldValues,
-            'new_values' => ['rfid_uid' => $rfidUid, 'rfid_status' => 'aktif'],
-        ]);
+        if ($asset->rfid_uid !== $rfidUid || $asset->rfid_status !== 'aktif') {
+            $oldValues = ['rfid_uid' => $asset->rfid_uid, 'rfid_status' => $asset->rfid_status];
+            $asset->rfid_uid = $rfidUid;
+            $asset->rfid_status = 'aktif';
+            $asset->save();
+
+            AssetHistory::create([
+                'asset_id' => $asset->id,
+                'asset_name' => $asset->name,
+                'action' => 'update',
+                'changed_by_name' => 'Raspberry Pi RFID Register',
+                'changed_by_position' => 'IoT Registration Agent',
+                'changed_by_location' => $asset->room ?? 'Scanner',
+                'old_values' => $oldValues,
+                'new_values' => ['rfid_uid' => $rfidUid, 'rfid_status' => 'aktif'],
+            ]);
+        }
 
         return response()->json([
             'success' => true,
