@@ -14,9 +14,9 @@
     </a>
 
     <!-- Form Card -->
-    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl shadow-lg p-5 md:p-6 lg:p-8">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl shadow-none p-5 md:p-6 lg:p-8">
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm shadow-md shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-indigo-950 flex items-center justify-center font-bold text-white text-sm shadow-none shrink-0">
                 {{ strtoupper(substr($teknisi->name, 0, 2)) }}
             </div>
             <div>
@@ -29,7 +29,7 @@
         </div>
 
         @if($errors->any())
-            <div class="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-300 text-sm">
+            <div class="mb-6 p-4 bg-rose-950 border border-rose-500/20 rounded-2xl text-rose-300 text-sm">
                 <ul class="list-disc pl-5 space-y-1">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -46,7 +46,7 @@
             <div>
                 <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Nama Lengkap <span class="text-rose-400">*</span></label>
                 <input type="text" id="name" name="name" required value="{{ old('name', $teknisi->name) }}"
-                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition"
+                    class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition"
                     placeholder="Masukkan nama lengkap...">
             </div>
 
@@ -54,7 +54,7 @@
             <div>
                 <label for="username" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Username <span class="text-rose-400">*</span></label>
                 <input type="text" id="username" name="username" required value="{{ old('username', $teknisi->username) }}"
-                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition font-mono"
+                    class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition font-mono"
                     placeholder="contoh: john_doe">
                 <p class="text-xs text-slate-500 mt-1.5">Hanya huruf, angka, dash, dan underscore.</p>
             </div>
@@ -63,7 +63,7 @@
             <div>
                 <label for="position" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Jabatan</label>
                 <input type="text" id="position" name="position" value="{{ old('position', $teknisi->position) }}"
-                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition"
+                    class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder-slate-500 outline-none transition"
                     placeholder="Contoh: Teknisi Lab Komputer...">
             </div>
 
@@ -72,7 +72,7 @@
                 <label for="location" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Lokasi Kerja</label>
                 <div class="relative">
                     <select id="location" name="location"
-                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none transition appearance-none cursor-pointer">
+                        class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none transition appearance-none cursor-pointer">
                         <option value="" class="bg-slate-800">Pilih Lokasi (Opsional)...</option>
                         @foreach($locations as $loc)
                             <option value="{{ $loc->kode_ruangan }}" class="bg-slate-800" {{ old('location', $teknisi->location) == $loc->kode_ruangan ? 'selected' : '' }}>
@@ -89,7 +89,7 @@
             </div>
 
             <!-- Info Note -->
-            <div class="p-3.5 bg-slate-800/50 border border-slate-700/60 rounded-xl flex items-start gap-3">
+            <div class="p-3.5 bg-slate-800 border border-slate-700/60 rounded-xl flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -103,7 +103,7 @@
                     Batal
                 </a>
                 <button type="submit" id="btn-update-teknisi"
-                    class="w-full sm:w-auto justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all duration-200 cursor-pointer flex items-center gap-2">
+                    class="w-full sm:w-auto justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all duration-200 cursor-pointer flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>

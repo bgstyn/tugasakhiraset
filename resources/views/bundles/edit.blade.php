@@ -16,7 +16,7 @@
         @csrf @method('PUT')
 
         {{-- Basic Info Card --}}
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-5">
+        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 space-y-5">
             <h2 class="text-base font-bold text-white flex items-center gap-2">
                 <svg class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
@@ -67,14 +67,14 @@
         </div>
 
         {{-- Asset Selector Card --}}
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4">
+        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
                     <svg class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     Kelola Aset dalam Bundle
-                    <span id="selectedCount" class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold">0</span>
+                    <span id="selectedCount" class="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-indigo-950 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold">0</span>
                 </h2>
                 <div class="relative">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -95,7 +95,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         @foreach($categoryAssets as $asset)
                         <label for="asset_{{ $asset->id }}"
-                            class="asset-item flex items-start gap-3 p-3 rounded-xl border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800/40 cursor-pointer transition group has-[:checked]:bg-indigo-500/5 has-[:checked]:border-indigo-500/30"
+                            class="asset-item flex items-start gap-3 p-3 rounded-xl border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800 cursor-pointer transition group has-[:checked]:bg-indigo-950 has-[:checked]:border-indigo-500/30"
                             data-name="{{ strtolower($asset->name . ' ' . $asset->asset_id . ' ' . $asset->category) }}"
                             data-category="{{ addslashes($category) }}">
                             <input type="checkbox" id="asset_{{ $asset->id }}" name="asset_ids[]" value="{{ $asset->id }}"
@@ -109,16 +109,16 @@
                                     <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">{{ $asset->category }}</span>
                                     @php
                                         $statusClasses = [
-                                            'standby'   => 'bg-emerald-500/10 text-emerald-400',
-                                            'digunakan' => 'bg-blue-500/10 text-blue-400',
-                                            'maintenance'=> 'bg-amber-500/10 text-amber-400',
-                                            'rusak'     => 'bg-rose-500/10 text-rose-400',
+                                            'standby'   => 'bg-emerald-950 text-emerald-400',
+                                            'digunakan' => 'bg-blue-950 text-blue-400',
+                                            'maintenance'=> 'bg-amber-950 text-amber-400',
+                                            'rusak'     => 'bg-rose-950 text-rose-400',
                                         ];
-                                        $cls = $statusClasses[$asset->status] ?? 'bg-slate-500/10 text-slate-400';
+                                        $cls = $statusClasses[$asset->status] ?? 'bg-slate-500 text-slate-400';
                                     @endphp
                                     <span class="text-[10px] px-1.5 py-0.5 rounded {{ $cls }}">{{ str_replace('_', ' ', $asset->status) }}</span>
                                     @if(in_array($asset->id, $selectedIds))
-                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">✓ Sudah dipilih</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-500/20">✓ Sudah dipilih</span>
                                     @endif
                                 </div>
                             </div>
@@ -133,7 +133,7 @@
         {{-- Submit --}}
         <div class="flex gap-3 justify-end">
             <a href="{{ route('bundles.show', $bundle) }}" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-semibold transition">Batal</a>
-            <button type="submit" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition shadow-md shadow-indigo-600/20 cursor-pointer flex items-center gap-2">
+            <button type="submit" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition shadow-none shadow-indigo-600/20 cursor-pointer flex items-center gap-2">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 Simpan Perubahan
             </button>

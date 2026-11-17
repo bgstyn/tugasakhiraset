@@ -14,6 +14,7 @@ const result = document.getElementById('scan-result');
 const cameraError = document.getElementById('browser-camera-error');
 
 let frameRequest;
+let frameTag;
 let browserScanner;
 let cameraCleanup = Promise.resolve();
 let lastCode;
@@ -23,6 +24,7 @@ let lookupPending = false;
 function clearPreview() {
     if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
     preview.removeAttribute('src');
+    frameTag = undefined;
 }
 
 function setCameraState(state, title, hint) {
@@ -36,17 +38,32 @@ function setCameraState(state, title, hint) {
 
 async function pollFrames(request) {
     if (request.signal.aborted) return;
-    let delay = 500;
+    if (document.hidden) {
+        setTimeout(() => pollFrames(request), 1000);
+        return;
+    }
+    const startedAt = performance.now();
+    let interval = 175;
     try {
-        const response = await fetch(frameUrl, { cache: 'no-store', signal: request.signal });
-        if (response.ok && response.headers.get('X-Raspi-Status') === 'online'
+        const response = await fetch(frameUrl, {
+            cache: 'no-store',
+            signal: request.signal,
+            headers: frameTag ? { 'If-None-Match': frameTag } : {},
+        });
+        if (request.signal.aborted) return;
+        if (response.status === 304) {
+            setCameraState('online', 'Kamera terhubung', '');
+        } else if (response.ok && response.headers.get('X-Raspi-Status') === 'online'
             && response.headers.get('Content-Type')?.includes('image/jpeg')) {
             const frame = await response.blob();
-            clearPreview();
+            if (request.signal.aborted) return;
+            const previous = preview.src;
             preview.src = URL.createObjectURL(frame);
+            if (previous.startsWith('blob:')) URL.revokeObjectURL(previous);
+            frameTag = response.headers.get('ETag');
             setCameraState('online', 'Kamera terhubung', '');
         } else {
-            delay = 1500;
+            interval = 1500;
             clearPreview();
             if (response.redirected || response.status === 401 || response.status === 403) {
                 setCameraState('offline', 'Sesi perlu diperbarui', 'Muat ulang halaman dan masuk kembali.');
@@ -56,11 +73,13 @@ async function pollFrames(request) {
         }
     } catch {
         if (request.signal.aborted) return;
-        delay = 2000;
+        interval = 2000;
         clearPreview();
         setCameraState('offline', 'Koneksi terputus', 'Periksa koneksi internet. Kamera akan dicoba lagi.');
     }
-    if (!request.signal.aborted) setTimeout(() => pollFrames(request), delay);
+    if (!request.signal.aborted) {
+        setTimeout(() => pollFrames(request), Math.max(0, interval - (performance.now() - startedAt)));
+    }
 }
 
 function refreshFrames() {
@@ -128,22 +147,19 @@ async function selectCamera(mode) {
     clearPreview();
     await cameraCleanup;
     if (browserPanel.hidden || browserScanner) return;
-    if (typeof window.Html5QrcodeScanner !== 'function') {
+
+    try {
+        const { Html5QrcodeScanner } = await import('html5-qrcode');
+        if (browserPanel.hidden || browserScanner) return;
+        cameraError.hidden = true;
+        browserScanner = new Html5QrcodeScanner('reader', { fps: 10, rememberLastUsedCamera: true }, false);
+        browserScanner.render(code => {
+            if (!browserPanel.hidden) lookupQr(code);
+        });
+    } catch {
+        browserScanner = null;
         cameraError.hidden = false;
-        return;
     }
-    cameraError.hidden = true;
-    browserScanner = new window.Html5QrcodeScanner('reader', {
-        fps: 10,
-        qrbox: (width, height) => {
-            const size = Math.min(250, Math.floor(Math.min(width, height) * 0.8));
-            return { width: size, height: size };
-        },
-        rememberLastUsedCamera: true,
-    }, false);
-    browserScanner.render(code => {
-        if (!browserPanel.hidden) lookupQr(code);
-    });
 }
 
 picker.forEach(button => button.addEventListener('click', () => selectCamera(button.dataset.cameraMode)));

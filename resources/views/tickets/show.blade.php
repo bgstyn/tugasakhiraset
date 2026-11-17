@@ -19,7 +19,7 @@
         {{-- Left column: Ticket Info & Action forms --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Ticket General info --}}
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-5">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
                     <div>
                         <span class="text-slate-500 text-[10px] uppercase font-bold tracking-widest block">Nomor Tiket</span>
@@ -30,26 +30,26 @@
                         @if($ticket->status === 'open')
                             <span class="px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 border border-sky-500/20 text-sky-400 uppercase">Open</span>
                         @elseif($ticket->status === 'assigned')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 border border-purple-500/20 text-purple-400 uppercase">Assigned</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-950 border border-purple-500/20 text-purple-400 uppercase">Assigned</span>
                         @elseif($ticket->status === 'in_progress')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 border border-blue-500/20 text-blue-450 uppercase">In Progress</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-950 border border-blue-500/20 text-blue-450 uppercase">In Progress</span>
                         @elseif($ticket->status === 'waiting_sparepart')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 border border-amber-500/20 text-amber-400 uppercase">Waiting Sparepart</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-950 border border-amber-500/20 text-amber-400 uppercase">Waiting Sparepart</span>
                         @elseif($ticket->status === 'completed')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 uppercase">Completed</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 border border-emerald-500/20 text-emerald-400 uppercase">Completed</span>
                         @else
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 border border-rose-500/20 text-rose-450 uppercase">Cancelled</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-950 border border-rose-500/20 text-rose-450 uppercase">Cancelled</span>
                         @endif
 
                         {{-- Priority Badge --}}
                         @if($ticket->priority === 'critical')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 border border-red-500/25 text-red-400 uppercase">CRITICAL</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-950 border border-red-500/25 text-red-400 uppercase">CRITICAL</span>
                         @elseif($ticket->priority === 'high')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/10 border border-orange-500/25 text-orange-400 uppercase">HIGH</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-950 border border-orange-500/25 text-orange-400 uppercase">HIGH</span>
                         @elseif($ticket->priority === 'medium')
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/25 text-amber-300 uppercase">MEDIUM</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-950 border border-amber-500/25 text-amber-300 uppercase">MEDIUM</span>
                         @else
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-500/10 border border-slate-500/25 text-slate-400 uppercase">LOW</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-500 border border-slate-500/25 text-slate-400 uppercase">LOW</span>
                         @endif
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                 </div>
 
                 {{-- Reporter Info --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-slate-950/40 p-4 rounded-xl border border-slate-850/80">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-slate-950 p-4 rounded-xl border border-slate-850/80">
                     <div>
                         <span class="text-slate-500 block">Nama Pelapor</span>
                         <strong class="text-slate-300 text-sm block mt-0.5">{{ $ticket->reporter_name }}</strong>
@@ -84,7 +84,7 @@
             </div>
 
             {{-- Action Box (Claim, Assign, Update Status) --}}
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-6">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-6">
                 <h4 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -95,14 +95,14 @@
                 <div class="space-y-4">
                     {{-- 1. CLAIM BUTTON (For Technicians/Admins when Open) --}}
                     @if($ticket->status === 'open')
-                        <div class="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="p-4 bg-indigo-950 border border-indigo-500/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <span class="font-bold text-white text-sm block">Klaim Tiket Ini</span>
                                 <span class="text-xs text-slate-400 mt-0.5">Ambil tugas penanganan perbaikan aset ini. Tiket akan langsung ditugaskan ke Anda.</span>
                             </div>
                             <form action="{{ route('tickets.claim', $ticket->id) }}" method="POST" class="shrink-0 w-full sm:w-auto">
                                 @csrf
-                                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl text-xs font-semibold shadow-md transition cursor-pointer text-center">
+                                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl text-xs font-semibold shadow-none transition cursor-pointer text-center">
                                     Claim Ticket
                                 </button>
                             </form>
@@ -111,7 +111,7 @@
 
                     {{-- 2. ASSIGNMENT FORM (Administrator Only) --}}
                     @if(Auth::user()->isAdmin())
-                        <form action="{{ route('tickets.assign', $ticket->id) }}" method="POST" class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl space-y-3">
+                        <form action="{{ route('tickets.assign', $ticket->id) }}" method="POST" class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
                             @csrf
                             <div>
                                 <label for="assigned_to" class="block font-bold text-white text-sm">Tugaskan ke Teknisi</label>
@@ -139,7 +139,7 @@
                         $canUpdateStatus = Auth::user()->isAdmin() || (Auth::user()->id === $ticket->assigned_to);
                     @endphp
                     @if($canUpdateStatus && $ticket->assigned_to)
-                        <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST" enctype="multipart/form-data" class="p-4 bg-slate-950/40 border border-slate-800 rounded-xl space-y-4">
+                        <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST" enctype="multipart/form-data" class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-4">
                             @csrf
                             <div>
                                 <label for="status" class="block font-bold text-white text-sm">Perbarui Status Progres</label>
@@ -169,7 +169,7 @@
                                 </div>
 
                                 {{-- Logbook Fields (Only shown if status is completed) --}}
-                                <div id="completed-logbook-fields" class="sm:col-span-2 hidden bg-slate-950/80 p-4 border border-slate-850 rounded-xl space-y-4 mt-2">
+                                <div id="completed-logbook-fields" class="sm:col-span-2 hidden bg-slate-950 p-4 border border-slate-850 rounded-xl space-y-4 mt-2">
                                     <div class="border-b border-slate-850 pb-2 mb-2">
                                         <h5 class="text-xs font-bold text-indigo-400">Maintenance Logbook (Wajib diisi untuk status Selesai)</h5>
                                         <p class="text-[10px] text-slate-500">Isi rekam perbaikan di bawah untuk diarsipkan secara permanen.</p>
@@ -224,7 +224,7 @@
             </div>
 
             {{-- Comments Module --}}
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-6">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-6">
                 <h4 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
@@ -238,12 +238,12 @@
                 @else
                     <div class="space-y-4">
                         @foreach($ticket->comments as $comment)
-                            <div class="p-3.5 bg-slate-950/50 border border-slate-850 rounded-xl space-y-2">
+                            <div class="p-3.5 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
                                 <div class="flex items-center justify-between border-b border-slate-850 pb-1.5 text-xs">
                                     <div class="flex items-center gap-2">
                                         <span class="font-bold text-slate-200">{{ $comment->user->name }}</span>
                                         <span class="text-[9px] px-1.5 py-0.5 rounded uppercase font-semibold
-                                            {{ $comment->user->isAdmin() ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' }}">
+                                            {{ $comment->user->isAdmin() ? 'bg-amber-950 text-amber-300 border border-amber-500/20' : 'bg-indigo-950 text-indigo-300 border border-indigo-500/20' }}">
                                             {{ $comment->user->role }}
                                         </span>
                                     </div>
@@ -276,7 +276,7 @@
         {{-- Right column: Asset Details info --}}
         <div class="space-y-6">
             {{-- Asset Specifications Card --}}
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-4">
                 <h4 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a3 3 0 013 3v10a3 3 0 01-3 3H7a3 3 0 01-3-3V8a3 3 0 013-3z" />
@@ -324,7 +324,7 @@
             </div>
 
             {{-- Audit log status transitions --}}
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-4">
                 <h4 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -337,19 +337,44 @@ class ModeSwitch:
         self.right.close()
 
 
+class QrDecoder:
+    def __init__(self, cv2):
+        self.opencv = cv2.QRCodeDetector()
+        try:
+            from pyzbar import pyzbar
+            self.zbar = pyzbar
+        except (ImportError, OSError):
+            self.zbar = None
+
+    def decode(self, frame):
+        if self.zbar:
+            for symbol in self.zbar.decode(frame, symbols=[self.zbar.ZBarSymbol.QRCODE]):
+                try:
+                    text = symbol.data.decode('utf-8').strip()
+                except UnicodeDecodeError:
+                    continue
+                if text:
+                    return text, None
+
+        text, corners, _ = self.opencv.detectAndDecode(frame)
+        return text, corners
+
+
 class WebcamWorker(threading.Thread):
-    def __init__(self, events, stop, camera_index=0, publish_frame=None):
+    def __init__(self, events, stop, camera_index=0, publish_frame=None, *, stream_fps=5):
         super().__init__(daemon=True, name='webcam')
         self.events, self.stop, self.index = events, stop, camera_index
         self.publish_frame = publish_frame
+        self.frame_interval = 1 / stream_fps
         self.reset_detection = threading.Event()
+        self.last_activity = None
 
     def _emit(self, event):
         emit(self.events, self.stop, event)
 
     def run(self):
         import cv2
-        detector = cv2.QRCodeDetector()
+        detector = QrDecoder(cv2)
         while not self.stop.is_set():
             cap = cv2.VideoCapture(self.index, cv2.CAP_V4L2)
             if not cap.isOpened():
@@ -362,7 +387,7 @@ class WebcamWorker(threading.Thread):
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             last, missing_since, unreadable_since, last_bad_report = None, None, None, 0
-            next_frame_at = 0
+            next_frame_at = next_scan_at = 0
             try:
                 while not self.stop.is_set():
                     if self.reset_detection.is_set():
@@ -372,12 +397,20 @@ class WebcamWorker(threading.Thread):
                     if not ok:
                         raise RuntimeError('Webcam gagal membaca frame')
                     now = time.monotonic()
+                    self.last_activity = now
                     if self.publish_frame and now >= next_frame_at:
-                        next_frame_at = now + 0.5
-                        encoded, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 65])
+                        next_frame_at = now + self.frame_interval
+                        height, width = frame.shape[:2]
+                        preview = frame
+                        if width > 480:
+                            preview = cv2.resize(frame, (480, max(1, round(height * 480 / width))), interpolation=cv2.INTER_AREA)
+                        encoded, jpeg = cv2.imencode('.jpg', preview, [cv2.IMWRITE_JPEG_QUALITY, 60])
                         if encoded:
                             self.publish_frame(jpeg.tobytes())
-                    decoded, corners, _ = detector.detectAndDecode(frame)
+                    if now < next_scan_at:
+                        continue
+                    next_scan_at = now + 0.075
+                    decoded, corners = detector.decode(frame)
                     if decoded:
                         missing_since = None
                         unreadable_since = None
@@ -398,11 +431,11 @@ class WebcamWorker(threading.Thread):
                             missing_since = now
                         if now - missing_since >= 0.8:
                             last = None
-                    self.stop.wait(0.075)
             except Exception:
                 LOG.exception('Kamera error; restart otomatis')
                 self._emit(('camera_error', None))
             finally:
+                self.last_activity = None
                 cap.release()
             self.stop.wait(2)
 
@@ -414,6 +447,7 @@ class RfidWorker(threading.Thread):
         self.pin_factory, self.uid_format = pin_factory, uid_format
         self.rst_gpio, self.spi_device = rst_gpio, spi_device
         self.reset_detection = threading.Event()
+        self.last_activity = None
 
     def _emit(self, event):
         emit(self.events, self.stop, event)
@@ -430,6 +464,7 @@ class RfidWorker(threading.Thread):
                         last = None
                     raw = reader.read_uid()
                     now = time.monotonic()
+                    self.last_activity = now
                     if raw:
                         empty_since = None
                         uid = uid_as_string(raw, self.uid_format)
@@ -446,6 +481,7 @@ class RfidWorker(threading.Thread):
                 LOG.exception('RC522 error; coba ulang setelah 5 detik')
                 self._emit(('rfid_error', None))
             finally:
+                self.last_activity = None
                 if reader:
                     reader.close()
             self.stop.wait(5)

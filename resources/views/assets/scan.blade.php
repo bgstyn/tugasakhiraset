@@ -1,7 +1,7 @@
 @extends('layouts.layout')
 
 @section('title', 'Scan Aset - IT Asset Management')
-@section('page_title', 'Scan aset')
+@section('page_title', 'Cek aset')
 
 @section('content')
 <div id="asset-scanner" class="scanner-workspace"
@@ -13,9 +13,15 @@
     <section class="ops-surface scanner-panel" aria-labelledby="scanner-camera-title">
         <div class="scanner-panel-heading">
             <div>
-                <h2 id="scanner-camera-title">Kamera</h2>
-                <p>Arahkan QR aset ke kamera, atau tempel kartu pada pembaca RFID Pi.</p>
+                <h2 id="scanner-camera-title">Temukan aset dengan QR atau RFID</h2>
+                <p>Pilih mode Cek pada switch Pi, lalu scan salah satu identitas aset.</p>
             </div>
+        </div>
+
+        <div class="scanner-mode-guide">
+            <strong>Mode Cek: cukup QR atau RFID</strong>
+            <p>Hasil scan menampilkan informasi aset. Pemeriksaan ini tidak memasangkan tag atau mengubah lokasi.</p>
+            <details><summary>Ingin menghubungkan tag RFID baru?</summary><ol><li>Lewat website: buka detail aset → Hubungkan RFID. Pi tetap di mode Cek.</li><li>Langsung di Pi: pilih mode Daftar, lalu scan QR dan RFID. Pasangan lengkap disimpan otomatis.</li></ol><p>Mode Daftar memerlukan aset yang sudah dibuat. Tahap pembacaan pasangan ditampilkan di LCD Pi.</p></details>
         </div>
 
         <div class="scanner-sources" role="group" aria-label="Sumber kamera">
@@ -54,8 +60,3 @@
     </section>
 </div>
 @endsection
-
-@section('scripts')
-<script src="https://unpkg.com/html5-qrcode" defer></script>
-@endsection
-

@@ -7,7 +7,7 @@ fi
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 echo "[1] Instal dependency Trixie via apt ..."
 sudo apt update
-sudo apt install -y python3-gpiozero python3-lgpio python3-spidev python3-smbus python3-opencv python3-requests python3-dotenv i2c-tools v4l-utils sqlite3
+sudo apt install -y python3-gpiozero python3-lgpio python3-spidev python3-smbus python3-opencv python3-pyzbar python3-requests python3-dotenv i2c-tools v4l-utils sqlite3
 if [[ ! -f "$ROOT/.env" ]]; then
   cp "$ROOT/.env.example" "$ROOT/.env"
   chmod 600 "$ROOT/.env"

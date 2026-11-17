@@ -1,18 +1,19 @@
 @extends('layouts.layout')
 
 @section('title', 'Validasi RFID - Inventaris TI')
-@section('page_title', 'Validasi RFID')
+@section('page_title', 'Periksa tag RFID')
 
 @section('content')
 <div id="rfid-validator" class="scanner-workspace"
      data-lookup-url="{{ route('assets.rfid.validate', [], false) }}"
      data-latest-url="{{ route('assets.scan.latest', [], false) }}"
+     data-uid-url="{{ route('assets.scan.latest-rfid', [], false) }}"
      data-detail-url="{{ route('assets.show', ['asset' => 0], false) }}"
      data-opened-at="{{ (int) (microtime(true) * 1000) }}">
     <section class="ops-surface scanner-panel" aria-labelledby="rfid-input-heading">
         <div class="scanner-panel-heading">
             <div>
-                <h2 id="rfid-input-heading">Masukkan UID</h2>
+                <h2 id="rfid-input-heading">Periksa identitas tag</h2>
                 <p>Tempelkan kartu pada pembaca Raspberry Pi dalam mode Cek, atau masukkan UID secara manual.</p>
             </div>
         </div>
@@ -21,6 +22,7 @@
             <div class="ops-field">
                 <label for="rfid_input">UID RFID</label>
                 <input type="text" name="rfid_uid" id="rfid_input" required maxlength="255" autocomplete="off" spellcheck="false">
+                <small id="rfid-reader-status" role="status" aria-live="polite">Menghubungkan ke server…</small>
             </div>
             <div class="ops-inline-actions">
                 <button type="submit" class="ops-button ops-button-primary" disabled>Memuat…</button>

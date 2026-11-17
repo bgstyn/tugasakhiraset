@@ -4,7 +4,7 @@
 @section('page_title', 'Manajemen Tiket Perbaikan')
 
 @section('content')
-<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg">
+<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none">
     <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h3 class="text-base md:text-lg font-bold text-white">Daftar Tiket Maintenance</h3>
@@ -13,7 +13,7 @@
     </div>
 
     {{-- Filter & Search Form --}}
-    <form action="{{ route('tickets.index') }}" method="GET" class="mb-6 bg-slate-950/40 p-4 border border-slate-800/80 rounded-xl space-y-4">
+    <form action="{{ route('tickets.index') }}" method="GET" class="mb-6 bg-slate-950 p-4 border border-slate-800/80 rounded-xl space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {{-- Search input --}}
             <div class="relative">
@@ -73,7 +73,7 @@
 
     {{-- Tickets Table --}}
     @if($tickets->isEmpty())
-        <div class="text-center py-16 text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950/20">
+        <div class="text-center py-16 text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-800 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
@@ -83,7 +83,7 @@
         <div class="overflow-x-auto rounded-xl border border-slate-800" role="region" aria-label="Daftar tiket perbaikan" tabindex="0">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-950/60 border-b border-slate-800 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                    <tr class="bg-slate-950 border-b border-slate-800 text-[10px] uppercase font-bold tracking-wider text-slate-400">
                         <th class="p-4">Nomor Tiket</th>
                         <th class="p-4">Aset</th>
                         <th class="p-4">Pelapor</th>
@@ -95,7 +95,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800 text-xs">
                     @foreach($tickets as $ticket)
-                        <tr class="hover:bg-slate-900/10 transition">
+                        <tr class="hover:bg-slate-900 transition">
                             <td class="p-4 font-mono font-semibold text-slate-200">{{ $ticket->ticket_number }}</td>
                             <td class="p-4">
                                 <span class="font-bold text-slate-200 block">{{ $ticket->asset->name }}</span>
@@ -107,13 +107,13 @@
                             </td>
                             <td class="p-4">
                                 @if($ticket->priority === 'critical')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-400">CRITICAL</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 border border-red-500/20 text-red-400">CRITICAL</span>
                                 @elseif($ticket->priority === 'high')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 border border-orange-500/20 text-orange-400">HIGH</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-orange-950 border border-orange-500/20 text-orange-400">HIGH</span>
                                 @elseif($ticket->priority === 'medium')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-300">MEDIUM</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 border border-amber-500/20 text-amber-300">MEDIUM</span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 border border-slate-500/20 text-slate-400">LOW</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500 border border-slate-500/20 text-slate-400">LOW</span>
                                 @endif
                             </td>
                             <td class="p-4">
@@ -127,19 +127,19 @@
                                 @if($ticket->status === 'open')
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/15 border border-sky-500/20 text-sky-400 uppercase">Open</span>
                                 @elseif($ticket->status === 'assigned')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 border border-purple-500/20 text-purple-400 uppercase">Assigned</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950 border border-purple-500/20 text-purple-400 uppercase">Assigned</span>
                                 @elseif($ticket->status === 'in_progress')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 border border-blue-500/20 text-blue-450 uppercase">In Progress</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950 border border-blue-500/20 text-blue-450 uppercase">In Progress</span>
                                 @elseif($ticket->status === 'waiting_sparepart')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/20 text-amber-400 uppercase">Waiting Sparepart</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 border border-amber-500/20 text-amber-400 uppercase">Waiting Sparepart</span>
                                 @elseif($ticket->status === 'completed')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 uppercase">Completed</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 border border-emerald-500/20 text-emerald-400 uppercase">Completed</span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 border border-rose-500/20 text-rose-450 uppercase">Cancelled</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-500/20 text-rose-450 uppercase">Cancelled</span>
                                 @endif
                             </td>
                             <td class="p-4 text-center">
-                                <a href="{{ route('tickets.show', $ticket->id) }}" class="px-3 py-1.5 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/25 text-indigo-400 rounded-lg font-semibold transition cursor-pointer">
+                                <a href="{{ route('tickets.show', $ticket->id) }}" class="px-3 py-1.5 bg-indigo-950 hover:bg-indigo-950 border border-indigo-500/25 text-indigo-400 rounded-lg font-semibold transition cursor-pointer">
                                     Detail & Aksi
                                 </a>
                             </td>

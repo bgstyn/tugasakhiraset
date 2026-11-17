@@ -13,7 +13,7 @@
             <p class="text-slate-400 text-sm mt-0.5">Kelola paket/set aset gabungan, misalnya "1 Set Komputer Lab".</p>
         </div>
         <a href="{{ route('bundles.create') }}"
-            class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-indigo-600/20 w-fit">
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition shadow-none shadow-indigo-600/20 w-fit">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -23,7 +23,7 @@
 
     {{-- Flash Messages --}}
     @if(session('success'))
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm">
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-sm">
             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ session('success') }}
         </div>
@@ -41,7 +41,7 @@
         </div>
         <button type="submit" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition cursor-pointer">Cari</button>
         @if(request('search'))
-            <a href="{{ route('bundles.index') }}" class="px-4 py-2.5 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-300 rounded-xl text-sm transition">Reset</a>
+            <a href="{{ route('bundles.index') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-300 rounded-xl text-sm transition">Reset</a>
         @endif
     </form>
 
@@ -49,11 +49,11 @@
     @if($bundles->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             @foreach($bundles as $bundle)
-            <div class="group bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-200 flex flex-col gap-4">
+            <div class="group bg-slate-900 border border-slate-800/80 rounded-2xl p-5 hover:border-indigo-500/30 hover:shadow-none hover:shadow-indigo-500/5 transition-all duration-200 flex flex-col gap-4">
                 {{-- Bundle Header --}}
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/25 flex items-center justify-center shrink-0">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-950 border border-indigo-500/25 flex items-center justify-center shrink-0">
                             <svg class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
@@ -83,7 +83,7 @@
                 {{-- Actions --}}
                 <div class="flex gap-2 mt-auto pt-2 border-t border-slate-800/60">
                     <a href="{{ route('bundles.show', $bundle) }}"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-xs font-semibold transition">
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-indigo-950 hover:bg-indigo-950 border border-indigo-500/20 text-indigo-400 rounded-xl text-xs font-semibold transition">
                         <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         Detail
                     </a>
@@ -96,7 +96,7 @@
                         onsubmit="return confirm('Hapus bundle \'{{ $bundle->name }}\'? Aset individual tidak akan terhapus.')">
                         @csrf @method('DELETE')
                         <button type="submit"
-                            class="px-3 py-2 bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-900 text-slate-500 hover:text-rose-400 rounded-xl text-xs transition cursor-pointer">
+                            class="px-3 py-2 bg-slate-800 hover:bg-rose-900 border border-slate-700 hover:border-rose-900 text-slate-500 hover:text-rose-400 rounded-xl text-xs transition cursor-pointer">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </form>
@@ -112,8 +112,8 @@
 
     @else
         {{-- Empty State --}}
-        <div class="text-center py-20 bg-slate-900/40 border border-slate-800/60 rounded-2xl">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/15 flex items-center justify-center mx-auto mb-5">
+        <div class="text-center py-20 bg-slate-900 border border-slate-800/60 rounded-2xl">
+            <div class="w-20 h-20 rounded-2xl bg-indigo-950 border border-indigo-500/15 flex items-center justify-center mx-auto mb-5">
                 <svg class="h-10 w-10 text-indigo-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
@@ -128,7 +128,7 @@
             </p>
             @if(!request('search'))
                 <a href="{{ route('bundles.create') }}"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition shadow-lg shadow-indigo-600/20">
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition shadow-none shadow-indigo-600/20">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Buat Bundle Pertama
                 </a>

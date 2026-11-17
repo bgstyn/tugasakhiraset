@@ -4,7 +4,7 @@
 @section('page_title', 'Riwayat Perubahan & Aktivitas')
 
 @section('content')
-<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg">
+<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none">
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h3 class="text-base md:text-lg font-bold text-white">Log Aktivitas Aset</h3>
@@ -22,17 +22,17 @@
         </div>
     @else
         <div class="space-y-6">
-            <div class="overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40">
+            <div class="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
                 <div class="divide-y divide-slate-800">
                     @foreach($histories as $log)
-                        <div class="p-4 sm:p-5 hover:bg-slate-900/20 transition flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div class="p-4 sm:p-5 hover:bg-slate-900 transition flex flex-col md:flex-row md:items-start justify-between gap-4">
                             <!-- Left block: Action and details -->
                             <div class="flex items-start gap-4">
                                 <!-- Icon status -->
                                 <span class="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center 
-                                    @if($log->action == 'create') bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
-                                    @elseif($log->action == 'update') bg-blue-500/10 text-blue-400 border border-blue-500/20
-                                    @else bg-rose-500/10 text-rose-400 border border-rose-500/20 @endif">
+                                    @if($log->action == 'create') bg-emerald-950 text-emerald-400 border border-emerald-500/20
+                                    @elseif($log->action == 'update') bg-blue-950 text-blue-400 border border-blue-500/20
+                                    @else bg-rose-950 text-rose-400 border border-rose-500/20 @endif">
                                     
                                     @if($log->action == 'create')
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,7 +71,7 @@
 
                                     <!-- JSON values details -->
                                     @if($log->action == 'update' && $log->new_values)
-                                        <div class="text-xs text-slate-400 bg-slate-950/60 p-3 border border-slate-800/80 rounded-xl space-y-1 max-w-xl">
+                                        <div class="text-xs text-slate-400 bg-slate-950 p-3 border border-slate-800/80 rounded-xl space-y-1 max-w-xl">
                                             @foreach($log->new_values as $key => $newVal)
                                                 @php
                                                     $oldVal = $log->old_values[$key] ?? '-';
@@ -87,7 +87,7 @@
                                             @endforeach
                                         </div>
                                     @elseif($log->action == 'create' && $log->new_values)
-                                        <div class="text-xs text-slate-500 bg-slate-950/30 p-3 border border-slate-850 rounded-xl grid grid-cols-2 gap-x-4 gap-y-1 max-w-xl">
+                                        <div class="text-xs text-slate-500 bg-slate-950 p-3 border border-slate-850 rounded-xl grid grid-cols-2 gap-x-4 gap-y-1 max-w-xl">
                                             @foreach($log->new_values as $key => $val)
                                                 <div>
                                                     <span class="capitalize font-mono text-slate-600">{{ $key }}:</span> 
@@ -96,7 +96,7 @@
                                             @endforeach
                                         </div>
                                     @elseif($log->action == 'delete' && $log->old_values)
-                                        <div class="text-xs text-slate-500 bg-slate-950/30 p-3 border border-slate-850 rounded-xl grid grid-cols-2 gap-x-4 gap-y-1 max-w-xl">
+                                        <div class="text-xs text-slate-500 bg-slate-950 p-3 border border-slate-850 rounded-xl grid grid-cols-2 gap-x-4 gap-y-1 max-w-xl">
                                             @foreach($log->old_values as $key => $val)
                                                 <div>
                                                     <span class="capitalize font-mono text-slate-600">{{ $key }}:</span> 

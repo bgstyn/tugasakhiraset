@@ -34,6 +34,7 @@ class Config:
     camera_index: int = int(os.getenv('CAMERA_INDEX', '0'))
     camera_enabled: bool = _bool('CAMERA_ENABLED', True)
     camera_stream_enabled: bool = _bool('CAMERA_STREAM_ENABLED', True)
+    camera_stream_fps: int = int(os.getenv('CAMERA_STREAM_FPS', '5'))
     rfid_enabled: bool = _bool('RFID_ENABLED', True)
     scan_repeat_seconds: float = float(os.getenv('SCAN_REPEAT_SECONDS', '3.0'))
     pair_timeout_seconds: float = float(os.getenv('PAIR_TIMEOUT_SECONDS', '90'))
@@ -54,6 +55,8 @@ class Config:
             raise ValueError('RFID_UID_FORMAT harus hex atau decimal')
         if self.pending_limit < 1:
             raise ValueError('PENDING_LIMIT harus >=1')
+        if not 1 <= self.camera_stream_fps <= 8:
+            raise ValueError('CAMERA_STREAM_FPS harus antara 1 dan 8')
         used = {
             'switch cek': self.switch_check_gpio,
             'switch daftar': self.switch_register_gpio,

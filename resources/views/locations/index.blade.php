@@ -4,7 +4,7 @@
 @section('page_title', 'Manajemen Lokasi Kampus')
 
 @section('content')
-<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg">
+<div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none">
     <!-- Toolbar / Search and Action -->
     <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 md:gap-6 mb-6">
         <!-- Search Form -->
@@ -28,7 +28,7 @@
                     Clear Filter
                 </a>
             @endif
-            <a href="{{ route('locations.create') }}" class="w-full sm:w-auto justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/10 transition flex items-center gap-2 cursor-pointer">
+            <a href="{{ route('locations.create') }}" class="w-full sm:w-auto justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-none shadow-indigo-600/10 transition flex items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -38,10 +38,10 @@
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/50" role="region" aria-label="Daftar lokasi" tabindex="0">
+    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950" role="region" aria-label="Daftar lokasi" tabindex="0">
         <table class="w-full min-w-[700px] text-left border-collapse">
             <thead>
-                <tr class="bg-slate-900/60 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <tr class="bg-slate-900 border-b border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     <th class="py-4 px-6">Kode Ruangan</th>
                     <th class="py-4 px-6">Nama Ruangan</th>
                     <th class="py-4 px-6">Lantai</th>
@@ -51,7 +51,7 @@
             </thead>
             <tbody class="divide-y divide-slate-800/60 text-sm text-slate-300">
                 @forelse($locations as $loc)
-                    <tr class="hover:bg-slate-900/40 transition">
+                    <tr class="hover:bg-slate-900 transition">
                         <td class="py-4 px-6 font-mono text-indigo-300 font-semibold">
                             {{ $loc->kode_ruangan }}
                         </td>

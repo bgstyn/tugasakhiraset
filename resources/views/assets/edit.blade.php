@@ -14,14 +14,14 @@
         </a>
     </div>
 
-    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-lg">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-none">
         <div class="mb-6 border-b border-slate-800 pb-4">
             <h3 class="text-lg font-bold text-white">Ubah Informasi Aset IT</h3>
             <p class="text-xs text-slate-400 mt-1">Sesuaikan informasi aset. Setiap perubahan akan dicatat ke dalam log aktivitas.</p>
         </div>
 
         @if($errors->any())
-            <div class="mb-6 p-4 bg-rose-500/10 border border-rose-500/25 rounded-xl text-rose-300 text-sm">
+            <div class="mb-6 p-4 bg-rose-950 border border-rose-500/25 rounded-xl text-rose-300 text-sm">
                 <ul class="list-disc pl-5 space-y-1">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -47,7 +47,7 @@
                 <div class="md:col-span-2 lg:col-span-2">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-350 mb-2">ID Asset TI (Permanen)</label>
                     <input type="text" readonly value="{{ $asset->asset_id }}"
-                        class="w-full px-4 py-3 bg-slate-950/60 border border-slate-850 rounded-xl text-slate-400 outline-none transition font-mono text-sm">
+                        class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-slate-400 outline-none transition font-mono text-sm">
                 </div>
 
                 <!-- Category -->
@@ -56,9 +56,9 @@
                     <div class="relative">
                         <select id="category" name="category" required
                             class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none transition appearance-none cursor-pointer">
-                            <option value="" disabled class="bg-[#1f1736]">Pilih Kategori...</option>
+                            <option value="" disabled class="bg-slate-900">Pilih Kategori...</option>
                             @foreach(['Laptop', 'PC Desktop', 'Monitor', 'Printer / Scanner', 'Server', 'Networking', 'Aksesoris', 'Lainnya'] as $cat)
-                                <option value="{{ $cat }}" class="bg-[#1f1736]" {{ old('category', $asset->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                <option value="{{ $cat }}" class="bg-slate-900" {{ old('category', $asset->category) == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400">
@@ -198,7 +198,7 @@
                 <a href="{{ route('assets.show', $asset->id) }}" class="w-full sm:w-auto text-center px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-sm font-semibold transition cursor-pointer">
                     Batal
                 </a>
-                <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer">
+                <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer">
                     Perbarui Aset
                 </button>
             </div>

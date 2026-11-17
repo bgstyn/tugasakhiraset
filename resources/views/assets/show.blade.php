@@ -13,7 +13,7 @@
         
         <!-- Header JTI Info -->
         <div class="text-center sm:text-left mb-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold rounded-full mb-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-950 border border-indigo-500/20 text-indigo-400 text-xs font-semibold rounded-full mb-2">
                 <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
                 Informasi Publik Aset
             </span>
@@ -22,13 +22,12 @@
         </div>
 
         <!-- Main Details Card -->
-        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-none relative overflow-hidden">
             <!-- Glassmorphism decorative blur -->
-            <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl"></div>
 
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-850 pb-6 mb-6">
                 <div>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 mb-2 font-mono uppercase">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-950 border border-indigo-500/25 text-indigo-300 mb-2 font-mono uppercase">
                         {{ $asset->room ?? '-' }} Penempatan
                     </span>
                     <h3 class="text-xl font-bold text-white md:text-2xl">{{ $asset->name }}</h3>
@@ -38,32 +37,32 @@
 
                 <div class="self-start sm:self-auto">
                     @if($asset->status == 'standby')
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950 border border-emerald-500/25 text-emerald-400 shadow-none">
                             <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
                             Standby (Siap Pakai)
                         </span>
                     @elseif($asset->status == 'digunakan')
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/25 text-blue-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-950 border border-blue-500/25 text-blue-400 shadow-none">
                             <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                             Sedang Digunakan
                         </span>
                     @elseif($asset->status == 'maintenance')
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/25 text-amber-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 border border-amber-500/25 text-amber-400 shadow-none">
                             <span class="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>
                             Dalam Perbaikan
                         </span>
                     @elseif($asset->status == 'rusak')
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/25 text-rose-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950 border border-rose-500/25 text-rose-400 shadow-none">
                             <span class="w-2 h-2 bg-rose-400 rounded-full mr-2"></span>
                             Rusak (Off)
                         </span>
                     @elseif($asset->status == 'fraud')
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/25 text-red-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950 border border-red-500/25 text-red-400 shadow-none">
                             <span class="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
                             Hilang / Fraud
                         </span>
                     @else
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500/10 border border-slate-500/25 text-slate-400 shadow-sm">
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500 border border-slate-500/25 text-slate-400 shadow-none">
                             <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
                             Write Off
                         </span>
@@ -124,7 +123,7 @@
                     <span class="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Paket Asset (Bundle)</span>
                     <div class="flex flex-wrap gap-2 mt-1">
                         @foreach($asset->bundles as $bundle)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 rounded-xl text-xs font-semibold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-950 border border-indigo-500/25 text-indigo-300 rounded-xl text-xs font-semibold">
                             <span class="font-mono text-indigo-400">{{ $bundle->code }}</span>
                             <span>{{ $bundle->name }}</span>
                         </span>
@@ -143,7 +142,7 @@
                         </svg>
                         Spesifikasi Detail
                     </h4>
-                    <div class="text-sm bg-slate-950/45 p-4 rounded-xl border border-slate-800/80 text-slate-300">
+                    <div class="text-sm bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-slate-300">
                         {{ $asset->specification }}
                     </div>
                 </div>
@@ -151,7 +150,7 @@
         </div>
 
         <!-- Verification / Alert Note -->
-        <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-2xl p-4 flex gap-3 items-start text-xs text-indigo-300 leading-relaxed">
+        <div class="bg-indigo-950 border border-indigo-900/30 rounded-2xl p-4 flex gap-3 items-start text-xs text-indigo-300 leading-relaxed">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -181,7 +180,7 @@
         <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aset {{ $asset->name }}?')" class="inline w-full sm:w-auto">
             @csrf
             @method('DELETE')
-            <button type="submit" class="w-full sm:w-auto justify-center px-4 py-2 bg-slate-800 hover:bg-rose-950/40 text-rose-400 border border-slate-700 hover:border-rose-900 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
+            <button type="submit" class="w-full sm:w-auto justify-center px-4 py-2 bg-slate-800 hover:bg-rose-900 text-rose-400 border border-slate-700 hover:border-rose-900 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -191,8 +190,7 @@
     </div>
 
     <!-- Staff Actions Board (Requested: Edit Asset, Pair RFID, Lihat Riwayat, Update Status) -->
-    <div class="mb-6 bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-        <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
+    <div class="mb-6 bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-none relative overflow-hidden">
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3.5 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -210,11 +208,11 @@
             </a>
 
             <!-- Pair RFID Button -->
-            <button type="button" onclick="openPairRfidModal()" class="justify-center px-4 py-3 bg-slate-950 hover:bg-indigo-950/40 text-indigo-400 hover:text-indigo-300 border border-slate-800 hover:border-indigo-900/40 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
+            <button type="button" onclick="openPairRfidModal()" class="justify-center px-4 py-3 bg-slate-950 hover:bg-indigo-900 text-indigo-400 hover:text-indigo-300 border border-slate-800 hover:border-indigo-900/40 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1m8-9h1M3 12h1m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                 </svg>
-                Pair RFID
+                Hubungkan RFID
             </button>
 
             <!-- Lihat Riwayat Button -->
@@ -256,9 +254,9 @@
     {{-- Bundle Membership Panel --}}
     {{-- ============================================== --}}
     @if($asset->bundles->count() > 0)
-    <div class="mb-6 bg-indigo-950/20 border border-indigo-900/30 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+    <div class="mb-6 bg-indigo-950 border border-indigo-900/30 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="flex items-center gap-2.5 shrink-0">
-            <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-xl bg-indigo-950 border border-indigo-500/25 flex items-center justify-center">
                 <svg class="h-4.5 w-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
@@ -268,7 +266,7 @@
         <div class="flex flex-wrap gap-2">
             @foreach($asset->bundles as $bundle)
             <a href="{{ route('bundles.show', $bundle) }}"
-                class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/25 text-indigo-300 hover:text-white rounded-xl text-xs font-semibold transition group">
+                class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-950 hover:bg-indigo-950 border border-indigo-500/25 text-indigo-300 hover:text-white rounded-xl text-xs font-semibold transition group">
                 <span class="font-mono text-indigo-400 group-hover:text-indigo-300">{{ $bundle->code }}</span>
                 <span>{{ $bundle->name }}</span>
                 <svg class="h-3 w-3 opacity-50 group-hover:opacity-100 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -283,12 +281,11 @@
         <!-- Left Column: Asset Details -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Main details card -->
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-lg relative overflow-hidden">
-                <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl"></div>
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-none relative overflow-hidden">
 
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-800 pb-6 mb-6">
                     <div>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 mb-2 font-mono uppercase">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-950 border border-indigo-500/25 text-indigo-300 mb-2 font-mono uppercase">
                             {{ $asset->room ?? '-' }} Penempatan
                         </span>
                         <h3 class="text-xl font-bold text-white md:text-2xl">{{ $asset->name }}</h3>
@@ -298,42 +295,42 @@
 
                     <div class="self-start sm:self-auto">
                         @if($asset->status == 'standby')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 shadow-sm shadow-emerald-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-950 border border-emerald-500/25 text-emerald-400 shadow-none shadow-emerald-500/5">
                                 <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
                                 Standby (Siap Pakai)
                             </span>
                         @elseif($asset->status == 'digunakan')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/25 text-blue-400 shadow-sm shadow-blue-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-950 border border-blue-500/25 text-blue-400 shadow-none shadow-blue-500/5">
                                 <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                                 Sedang Digunakan
                             </span>
                         @elseif($asset->status == 'maintenance')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/25 text-amber-400 shadow-sm shadow-amber-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 border border-amber-500/25 text-amber-400 shadow-none shadow-amber-500/5">
                                 <span class="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>
                                 Dalam Perbaikan
                             </span>
                         @elseif($asset->status == 'rusak')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/25 text-rose-400 shadow-sm shadow-rose-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-950 border border-rose-500/25 text-rose-400 shadow-none shadow-rose-500/5">
                                 <span class="w-2 h-2 bg-rose-400 rounded-full mr-2"></span>
                                 Rusak (Off)
                             </span>
                         @elseif($asset->status == 'fraud')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/25 text-red-400 shadow-sm shadow-red-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-950 border border-red-500/25 text-red-400 shadow-none shadow-red-500/5">
                                 <span class="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
                                 Hilang / Fraud
                             </span>
                         @elseif($asset->status == 'write_off')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500/10 border border-slate-500/25 text-slate-400 shadow-sm shadow-slate-500/5">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500 border border-slate-500/25 text-slate-400 shadow-none shadow-slate-500/5">
                                 <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
                                 Write Off
                             </span>
                         @elseif($asset->status == 'pending_fraud_approval')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-300 shadow-sm animate-pulse">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 border border-amber-500/30 text-amber-300 shadow-none animate-pulse">
                                 <span class="w-2 h-2 bg-amber-400 rounded-full mr-2 animate-ping"></span>
                                 🟡 Pending Fraud Approval
                             </span>
                         @elseif($asset->status == 'pending_write_off_approval')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-300 shadow-sm animate-pulse">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-950 border border-amber-500/30 text-amber-300 shadow-none animate-pulse">
                                 <span class="w-2 h-2 bg-amber-400 rounded-full mr-2 animate-ping"></span>
                                 🟡 Pending Write Off Approval
                             </span>
@@ -377,25 +374,25 @@
                         <span class="block text-slate-555 text-xs font-semibold uppercase tracking-wider mb-1">RFID UID & Status</span>
                         <div class="flex flex-wrap items-center gap-2 mt-1">
                             @if($asset->rfid_uid)
-                                <strong class="text-slate-200 text-sm font-mono bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded inline-block">{{ $asset->rfid_uid }}</strong>
+                                <strong class="text-slate-200 text-sm font-mono bg-indigo-950 border border-indigo-500/20 px-2.5 py-0.5 rounded inline-block">{{ $asset->rfid_uid }}</strong>
                                 
                                 @if($asset->rfid_status === 'aktif')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-950 border border-emerald-500/25 text-emerald-400">
                                         <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
                                         Aktif
                                     </span>
                                 @elseif($asset->rfid_status === 'nonaktif')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-500/10 border border-amber-500/25 text-amber-300">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-950 border border-amber-500/25 text-amber-300">
                                         <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
                                         Nonaktif
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-500/10 border border-slate-500/25 text-slate-400">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-500 border border-slate-500/25 text-slate-400">
                                         Status Tidak Diketahui
                                     </span>
                                 @endif
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-rose-500/10 border border-rose-500/25 text-rose-400">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-rose-950 border border-rose-500/25 text-rose-400">
                                     <span class="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></span>
                                     Belum Terdaftar
                                 </span>
@@ -423,7 +420,7 @@
                                 @if(Auth::user()?->isAdmin())
                                     <form action="{{ route('assets.rfid.delete-web', $asset->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus RFID dari aset ini?')">
                                         @csrf
-                                        <button type="submit" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 rounded-lg text-xs font-semibold cursor-pointer transition">
+                                        <button type="submit" class="px-3 py-1.5 bg-rose-950 hover:bg-rose-950 border border-rose-500/20 text-rose-400 rounded-lg text-xs font-semibold cursor-pointer transition">
                                             Hapus RFID
                                         </button>
                                     </form>
@@ -446,7 +443,7 @@
                             </svg>
                             Spesifikasi Detail
                         </h4>
-                        <div class="text-sm bg-slate-950/45 p-4 rounded-xl border border-slate-800/80 text-slate-300">
+                        <div class="text-sm bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-slate-300">
                             {{ $asset->specification }}
                         </div>
                     </div>
@@ -454,7 +451,7 @@
             </div>
 
             {{-- Quick Status Update Card --}}
-            <div id="quick-status-update" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg transition duration-300">
+            <div id="quick-status-update" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none transition duration-300">
                 <h4 class="font-bold text-white text-base mb-1 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2" />
@@ -466,11 +463,11 @@
 
                 @if($isPendingApproval)
                     {{-- Locked: Pending Approval --}}
-                    <div class="mt-4 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
+                    <div class="mt-4 p-4 rounded-xl bg-amber-950 border border-amber-500/20 text-center">
                         <div class="text-amber-300 font-semibold text-sm mb-1">⏳ Menunggu Persetujuan Administrator</div>
                         <p class="text-xs text-slate-400">Status tidak dapat diubah selama pengajuan masih pending.</p>
                         @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.approvals.index') }}" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-300 rounded-xl text-xs font-semibold transition">
+                            <a href="{{ route('admin.approvals.index') }}" class="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-amber-950 hover:bg-amber-950 border border-amber-500/25 text-amber-300 rounded-xl text-xs font-semibold transition">
                                 Lihat Pengajuan →
                             </a>
                         @endif
@@ -503,14 +500,14 @@
                                     <button type="button"
                                         onclick="openApprovalModal('{{ $val }}')"
                                         class="py-2.5 px-3 border rounded-xl text-xs font-medium cursor-pointer transition text-center flex flex-col justify-center items-center gap-1.5 relative
-                                        {{ $asset->status == $val ? 'bg-amber-600/20 border-amber-500/30 text-amber-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 ' . $cfg['color'] }}">
+                                        {{ $asset->status == $val ? 'bg-amber-950 border-amber-500/30 text-amber-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 ' . $cfg['color'] }}">
                                         {{ $cfg['label'] }}
                                         <span class="text-[9px] text-slate-500 font-normal">Perlu Approval</span>
                                     </button>
                                 @else
                                     <button type="submit" name="status" value="{{ $val }}"
                                         class="py-2.5 px-3 border rounded-xl text-xs font-medium cursor-pointer transition text-center flex flex-col justify-center items-center gap-1.5
-                                        {{ $asset->status == $val ? 'bg-indigo-600 border-indigo-500 text-white shadow-md' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 ' . $cfg['color'] }}">
+                                        {{ $asset->status == $val ? 'bg-indigo-600 border-indigo-500 text-white shadow-none' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 ' . $cfg['color'] }}">
                                         {{ $cfg['label'] }}
                                     </button>
                                 @endif
@@ -524,7 +521,7 @@
             {{-- Approval History Section --}}
             {{-- ============================================== --}}
             @if($approvals->count() > 0)
-            <div id="riwayat-pengajuan" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg">
+            <div id="riwayat-pengajuan" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none">
                 <h4 class="font-bold text-white text-base mb-5 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -533,20 +530,20 @@
                 </h4>
                 <div class="space-y-3">
                     @foreach($approvals as $apv)
-                    <div class="p-4 rounded-xl border {{ $apv->status === 'pending' ? 'bg-amber-500/5 border-amber-500/20' : ($apv->status === 'approved' ? 'bg-emerald-500/5 border-emerald-500/15' : 'bg-rose-500/5 border-rose-500/15') }}">
+                    <div class="p-4 rounded-xl border {{ $apv->status === 'pending' ? 'bg-amber-950 border-amber-500/20' : ($apv->status === 'approved' ? 'bg-emerald-950 border-emerald-500/15' : 'bg-rose-950 border-rose-500/15') }}">
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                             <div class="flex items-center gap-2">
                                 @if($apv->type === 'fraud')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-300">🔴 Fraud</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-500/20 text-rose-300">🔴 Fraud</span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700/60 border border-slate-600/30 text-slate-300">⚫ Write Off</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 border border-slate-600/30 text-slate-300">⚫ Write Off</span>
                                 @endif
                                 @if($apv->status === 'pending')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-300">🟡 Pending</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950 border border-amber-500/20 text-amber-300">🟡 Pending</span>
                                 @elseif($apv->status === 'approved')
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">✅ Disetujui</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 border border-emerald-500/20 text-emerald-300">✅ Disetujui</span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-300">❌ Ditolak</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950 border border-rose-500/20 text-rose-300">❌ Ditolak</span>
                                 @endif
                             </div>
                             <span class="text-[10px] text-slate-500">{{ $apv->created_at->format('d M Y, H:i') }}</span>
@@ -558,7 +555,7 @@
                             @elseif($apv->status === 'rejected' && $apv->rejected_by)
                                 <div><span class="text-slate-500">Ditolak oleh:</span> <span class="text-rose-300 font-medium">{{ $apv->rejected_by }}</span></div>
                                 @if($apv->rejection_reason)
-                                    <div class="mt-1 p-2 bg-slate-800/60 rounded-lg text-slate-400 italic">"{{ $apv->rejection_reason }}"</div>
+                                    <div class="mt-1 p-2 bg-slate-800 rounded-lg text-slate-400 italic">"{{ $apv->rejection_reason }}"</div>
                                 @endif
                             @endif
                             @if($apv->document_path)
@@ -581,7 +578,7 @@
         <!-- Right Column: QR Code & Lifecycle History -->
         <div class="space-y-6">
             <!-- QR Code Asset Card -->
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg text-center flex flex-col items-center justify-center">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none text-center flex flex-col items-center justify-center">
                 <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-4 self-start flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -592,11 +589,11 @@
                     <img src="{{ $asset->qr_png_url }}" 
                         alt="QR Code Aset" class="w-36 h-36 mx-auto">
                 </div>
-                <p class="text-xs text-indigo-400 font-bold font-mono mb-4 bg-indigo-500/10 px-3 py-1 rounded border border-indigo-500/20 inline-block">{{ $asset->asset_id }}</p>
+                <p class="text-xs text-indigo-400 font-bold font-mono mb-4 bg-indigo-950 px-3 py-1 rounded border border-indigo-500/20 inline-block">{{ $asset->asset_id }}</p>
                 
                 <div class="grid grid-cols-2 gap-2.5 w-full">
                     <a href="{{ $asset->qr_png_url }}" download="{{ $asset->asset_id }}.png"
-                        class="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-center text-xs font-semibold shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-1">
+                        class="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-center text-xs font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
@@ -612,7 +609,7 @@
                     </a>
                 </div>>
                 </d            <!-- Local Lifecycle Timeline -->
-            <div id="riwayat-timeline" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg transition duration-300">
+            <div id="riwayat-timeline" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none transition duration-300">
                 <h4 class="font-bold text-white text-base mb-4 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -620,8 +617,8 @@
                     Lini Masa Asset Lifecycle
                 </h4>
 
-                <div class="flex flex-wrap gap-1.5 mb-5 bg-slate-950/60 p-1 border border-slate-850 rounded-xl">
-                    <button type="button" onclick="filterHistory('all')" id="tab-all" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-indigo-600/20 text-indigo-300 border border-indigo-500/20 cursor-pointer">Semua</button>
+                <div class="flex flex-wrap gap-1.5 mb-5 bg-slate-950 p-1 border border-slate-850 rounded-xl">
+                    <button type="button" onclick="filterHistory('all')" id="tab-all" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-indigo-950 text-indigo-300 border border-indigo-500/20 cursor-pointer">Semua</button>
                     <button type="button" onclick="filterHistory('assignment')" id="tab-assignment" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Assignment</button>
                     <button type="button" onclick="filterHistory('status')" id="tab-status" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Status</button>
                     <button type="button" onclick="filterHistory('location')" id="tab-location" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Lokasi</button>
@@ -656,19 +653,19 @@
                                     }
                                     
                                     $actionLabel = 'Update Aset';
-                                    $actionBg = 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+                                    $actionBg = 'bg-blue-950 text-blue-400 border border-blue-500/20';
                                     if ($log->action === 'create') {
                                         $actionLabel = 'Registrasi Aset';
-                                        $actionBg = 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20';
+                                        $actionBg = 'bg-emerald-950 text-emerald-450 border border-emerald-500/20';
                                     } elseif ($log->action === 'status_change') {
                                         $actionLabel = 'Perubahan Status';
-                                        $actionBg = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                                        $actionBg = 'bg-amber-950 text-amber-400 border border-amber-500/20';
                                     } elseif ($log->action === 'location_change') {
                                         $actionLabel = 'Perpindahan Lokasi';
-                                        $actionBg = 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+                                        $actionBg = 'bg-indigo-950 text-indigo-400 border border-indigo-500/20';
                                     } elseif ($log->action === 'assignment_change') {
                                         $actionLabel = 'Perubahan Assignment';
-                                        $actionBg = 'bg-purple-500/10 text-purple-405 border border-purple-500/20';
+                                        $actionBg = 'bg-purple-950 text-purple-405 border border-purple-500/20';
                                     } elseif ($log->action === 'rfid_change') {
                                         $actionLabel = 'Registrasi RFID';
                                         $actionBg = 'bg-pink-500/10 text-pink-400 border border-pink-500/20';
@@ -677,16 +674,16 @@
                                         $actionBg = 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
                                     } elseif ($log->action === 'ticket_created') {
                                         $actionLabel = 'Tiket Kerusakan Dibuat';
-                                        $actionBg = 'bg-rose-500/10 text-rose-455 border border-rose-500/20';
+                                        $actionBg = 'bg-rose-950 text-rose-455 border border-rose-500/20';
                                     } elseif ($log->action === 'ticket_status_change') {
                                         $actionLabel = 'Status Tiket Diperbarui';
-                                        $actionBg = 'bg-teal-500/10 text-teal-400 border border-teal-500/20';
+                                        $actionBg = 'bg-teal-950 text-teal-400 border border-teal-500/20';
                                     } elseif (str_contains($log->action, 'replacement')) {
                                         $actionLabel = 'Replacement Request (' . str_replace('replacement_', '', $log->action) . ')';
-                                        $actionBg = 'bg-red-500/10 text-red-405 border border-red-500/20';
+                                        $actionBg = 'bg-red-950 text-red-405 border border-red-500/20';
                                     } elseif (str_contains($log->action, 'approval')) {
                                         $actionLabel = 'Persetujuan (' . str_replace('approval_', '', $log->action) . ')';
-                                        $actionBg = 'bg-amber-600/10 text-amber-300 border border-amber-500/20';
+                                        $actionBg = 'bg-amber-950 text-amber-300 border border-amber-500/20';
                                     }
                                 @endphp
                                 <li class="history-item pb-8 relative" data-category="{{ $cat }}">
@@ -716,7 +713,7 @@
                                             
                                             <!-- List values that changed -->
                                             @if($log->new_values)
-                                                <div class="mt-2 space-y-1 text-[11px] text-slate-400 bg-slate-950/40 p-2.5 border border-slate-850 rounded-lg">
+                                                <div class="mt-2 space-y-1 text-[11px] text-slate-400 bg-slate-950 p-2.5 border border-slate-850 rounded-lg">
                                                     @foreach($log->new_values as $key => $newVal)
                                                         @php
                                                             $oldVal = $log->old_values[$key] ?? null;
@@ -758,8 +755,8 @@
     {{-- APPROVAL SUBMISSION MODAL --}}
     {{-- ============================================== --}}
     <div id="approvalModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeApprovalModal()"></div>
-        <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="absolute inset-0 bg-slate-950" onclick="closeApprovalModal()"></div>
+        <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between p-6 border-b border-slate-800">
                 <div>
                     <h3 class="text-lg font-bold text-white" id="approvalModalTitle">Pengajuan Perubahan Status</h3>
@@ -776,8 +773,8 @@
                 <input type="hidden" name="type" id="approvalType" value="">
 
                 {{-- Asset Info --}}
-                <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                <div class="p-3 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-950 border border-indigo-500/20 flex items-center justify-center shrink-0">
                         <svg class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
@@ -809,7 +806,7 @@
                         <span class="ml-1 text-slate-500 normal-case font-normal">(PDF, JPG, PNG, maks. 5MB)</span>
                     </label>
                     <label for="approval_document"
-                        class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-700 hover:border-indigo-500/50 rounded-xl cursor-pointer bg-slate-800/40 hover:bg-slate-800/70 transition group">
+                        class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-700 hover:border-indigo-500/50 rounded-xl cursor-pointer bg-slate-800 hover:bg-slate-800 transition group">
                         <div id="uploadPlaceholder" class="flex flex-col items-center gap-2">
                             <svg class="h-7 w-7 text-slate-600 group-hover:text-indigo-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                             <span class="text-xs text-slate-500 group-hover:text-slate-300 transition">Klik untuk upload atau seret file ke sini</span>
@@ -844,19 +841,20 @@
     </div>
 
     {{-- PAIR RFID MODAL (API Registration) --}}
-    <div id="pair-rfid-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div id="pair-rfid-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden"
+         data-uid-url="{{ route('assets.scan.latest-rfid', [], false) }}">
         <!-- Modal Overlay -->
-        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm cursor-pointer" onclick="closePairRfidModal()"></div>
+        <div class="fixed inset-0 bg-slate-950 cursor-pointer" onclick="closePairRfidModal()"></div>
         
         <!-- Modal Content Box -->
-        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-md p-6 rounded-2xl shadow-2xl mx-4 transform transition duration-300 scale-95 opacity-0" id="pair-rfid-modal-content">
+        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-md p-6 rounded-2xl shadow-none mx-4 transform transition duration-300 scale-95 opacity-0" id="pair-rfid-modal-content">
             <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1m8-9h1M3 12h1m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                 </svg>
-                Pair / Daftarkan RFID Aset
+                Hubungkan RFID ke aset
             </h3>
-            <p class="text-xs text-slate-400 mb-4">Daftarkan tag RFID fisik untuk mempermudah deteksi otomatis sensor IoT reader.</p>
+            <p class="text-xs text-slate-400 mb-4">1. Pilih mode <strong>Cek</strong> pada Pi. 2. Tempelkan tag RFID. 3. Periksa UID, lalu tekan <strong>Simpan RFID</strong>. Tag dihubungkan ke aset di bawah ini.</p>
             
             <form action="{{ route('assets.rfid.register-web', $asset->id) }}" method="POST">
                 @csrf
@@ -874,6 +872,7 @@
                         <input type="text" id="rfid_uid_input" name="rfid_uid" required placeholder="Masukkan UID RFID (contoh: A1B2C3D4)" 
                             value="{{ $asset->rfid_uid }}"
                             class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500/80 px-3 py-2.5 rounded-xl text-white text-sm font-mono outline-none transition duration-200">
+                        <p id="pair-rfid-status" class="text-xs text-slate-400 mt-2" role="status" aria-live="polite">Tempelkan kartu ke pembaca Pi untuk mengisi UID.</p>
                     </div>
                 </div>
                 
@@ -891,8 +890,8 @@
 
     {{-- MANUAL MAINTENANCE MODAL --}}
     <div id="manual-maintenance-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm cursor-pointer" onclick="closeManualMaintenanceModal()"></div>
-        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-lg p-6 rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto transform transition duration-300 scale-95 opacity-0" id="manual-maintenance-modal-content">
+        <div class="fixed inset-0 bg-slate-950 cursor-pointer" onclick="closeManualMaintenanceModal()"></div>
+        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-lg p-6 rounded-2xl shadow-none mx-4 max-h-[90vh] overflow-y-auto transform transition duration-300 scale-95 opacity-0" id="manual-maintenance-modal-content">
             <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -969,8 +968,8 @@
 
     {{-- REQUEST REPLACEMENT MODAL --}}
     <div id="request-replacement-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm cursor-pointer" onclick="closeRequestReplacementModal()"></div>
-        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-md p-6 rounded-2xl shadow-2xl mx-4 transform transition duration-300 scale-95 opacity-0" id="request-replacement-modal-content">
+        <div class="fixed inset-0 bg-slate-950 cursor-pointer" onclick="closeRequestReplacementModal()"></div>
+        <div class="relative bg-slate-900 border border-slate-800/80 w-full max-w-md p-6 rounded-2xl shadow-none mx-4 transform transition duration-300 scale-95 opacity-0" id="request-replacement-modal-content">
             <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -1056,6 +1055,7 @@
         const modal = document.getElementById('pair-rfid-modal');
         const content = document.getElementById('pair-rfid-modal-content');
         modal.classList.remove('hidden');
+        modal.dispatchEvent(new Event('rfid-pair-open'));
         setTimeout(() => {
             content.classList.remove('scale-95', 'opacity-0');
             content.classList.add('scale-100', 'opacity-100');
@@ -1105,6 +1105,7 @@
 
     function closePairRfidModal() {
         const modal = document.getElementById('pair-rfid-modal');
+        modal.dispatchEvent(new Event('rfid-pair-close'));
         const content = document.getElementById('pair-rfid-modal-content');
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-95', 'opacity-0');
@@ -1114,12 +1115,12 @@
     // ─── Category Filter for History ───
     function filterHistory(cat) {
         document.querySelectorAll('.hist-tab').forEach(btn => {
-            btn.classList.remove('bg-indigo-600/20', 'text-indigo-300', 'border', 'border-indigo-500/20');
+            btn.classList.remove('bg-indigo-950', 'text-indigo-300', 'border', 'border-indigo-500/20');
             btn.classList.add('text-slate-400');
         });
         const activeBtn = document.getElementById('tab-' + cat);
         if (activeBtn) {
-            activeBtn.classList.add('bg-indigo-600/20', 'text-indigo-300', 'border', 'border-indigo-500/20');
+            activeBtn.classList.add('bg-indigo-950', 'text-indigo-300', 'border', 'border-indigo-500/20');
             activeBtn.classList.remove('text-slate-400');
         }
         

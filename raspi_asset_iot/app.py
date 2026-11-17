@@ -14,7 +14,7 @@ import threading
 import time
 from pathlib import Path
 
-from api import ApiClient, FrameUploader
+from api import ApiClient, FrameUploader, RfidReadPublisher, HeartbeatPublisher
 from config import Config
 from core import Outbox, RegistrationPair, normalize_qr
 
@@ -33,7 +33,7 @@ def diagnose(config):
     print('GPIO switch:',config.switch_check_gpio, config.switch_register_gpio)
     for path in (f'/dev/spidev0.{config.rfid_spi_device}', '/dev/i2c-1', f'/dev/video{config.camera_index}'):
         print(path, 'ADA' if Path(path).exists() else 'TIDAK ADA')
-    for module in ('cv2', 'spidev', 'gpiozero', 'lgpio', 'smbus', 'requests', 'dotenv'):
+    for module in ('cv2', 'pyzbar.pyzbar', 'spidev', 'gpiozero', 'lgpio', 'smbus', 'requests', 'dotenv'):
         try:
             __import__(module)
             print('python', module, 'OK')
@@ -81,7 +81,7 @@ class Controller:
         self.outbox = Outbox(config.db_path, config.pending_limit)
         self.pin_factory = LGPIOFactory()
         self.indicator = self.switch = None
-        self.sender = self.cam = self.reader = self.frames = None
+        self.sender = self.cam = self.reader = self.frames = self.uid_publisher = self.heartbeat = None
         try:
             self.indicator = Indicator(self.pin_factory, config)
             self.switch = ModeSwitch(self.pin_factory, config.switch_check_gpio, config.switch_register_gpio)
@@ -95,14 +95,35 @@ class Controller:
         self.latest_event_times = {}  # local-only; bound in cleanup
         api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
         self.sender = Sender(self.outbox, api, self.events, self.stop)
+        if config.rfid_enabled:
+            uid_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
+            self.uid_publisher = RfidReadPublisher(uid_api, self.stop)
         if config.camera_enabled:
             if config.camera_stream_enabled:
                 frame_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
                 self.frames = FrameUploader(frame_api, self.stop)
             self.cam = WebcamWorker(
                 self.events, self.stop, config.camera_index, self.frames.submit if self.frames else None,
+                stream_fps=config.camera_stream_fps,
             )
         self.reader = RfidWorker(self.events, self.stop, self.pin_factory, config.rfid_uid_format, config.rfid_rst_gpio, config.rfid_spi_device) if config.rfid_enabled else None
+        heartbeat_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
+        self.heartbeat = HeartbeatPublisher(heartbeat_api, self.stop, self.health_snapshot)
+
+    def health_snapshot(self):
+        now = time.monotonic()
+
+        def state(worker):
+            if worker is None:
+                return 'disabled'
+            activity = worker.last_activity
+            return 'ready' if worker.is_alive() and activity is not None and 0 <= now - activity < 5 else 'error'
+
+        try:
+            pending = self.outbox.pending_count()
+        except sqlite3.Error:
+            pending = None
+        return {'mode': self.mode, 'camera': state(self.cam), 'rfid': state(self.reader), 'pending_count': pending}
 
     def show(self, line1, line2, color=None, seconds=2.2, beeps=0):
         self.indicator.display(line1, line2)
@@ -145,6 +166,8 @@ class Controller:
             self.indicator.display(*self.base_lines())
 
     def on_scan(self, source, raw):
+        if source == 'rfid' and self.uid_publisher:
+            self.uid_publisher.submit(raw)
         if self.mode == 'invalid':
             self.show('PILIH MODE', 'CEK / DAFTAR', 'failure', 1.8, beeps=2)
             return
@@ -194,12 +217,15 @@ class Controller:
     def run(self):
         self.update_mode()
         self.sender.start()
+        if self.uid_publisher:
+            self.uid_publisher.start()
         if self.frames:
             self.frames.start()
         if self.cam:
             self.cam.start()
         if self.reader:
             self.reader.start()
+        self.heartbeat.start()
         LOG.info('Service siap, koneksi internet tidak diperlukan untuk menerima scan')
         last_idle_draw = 0
         while not self.stop.is_set():
@@ -244,7 +270,7 @@ class Controller:
             try:
                 if self.switch:
                     self.switch.close()
-                for worker in (self.reader, self.cam, self.sender, self.frames):
+                for worker in (self.reader, self.cam, self.sender, self.frames, self.uid_publisher, self.heartbeat):
                     if worker and worker.ident is not None:
                         worker.join(timeout=1)
             finally:

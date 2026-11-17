@@ -21,7 +21,7 @@
             <form action="{{ route('bundles.destroy', $bundle) }}" method="POST"
                 onsubmit="return confirm('Hapus bundle ini? Aset individual tidak akan terpengaruh.')">
                 @csrf @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-900 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition cursor-pointer">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-rose-900 border border-slate-700 hover:border-rose-900 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition cursor-pointer">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     Hapus
                 </button>
@@ -31,26 +31,24 @@
 
     {{-- Flash --}}
     @if(session('success'))
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm">
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-sm">
             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ session('success') }}
         </div>
     @endif
 
     {{-- Bundle Hero Card --}}
-    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-        <div class="absolute right-0 top-0 translate-x-6 -translate-y-6 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute left-0 bottom-0 -translate-x-6 translate-y-6 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 relative overflow-hidden">
 
         <div class="flex flex-col md:flex-row md:items-start gap-5">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/25 flex items-center justify-center shrink-0">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-950 border border-indigo-500/25 flex items-center justify-center shrink-0">
                 <svg class="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
             </div>
             <div class="flex-1">
                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                    <span class="font-mono text-sm font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg">{{ $bundle->code }}</span>
+                    <span class="font-mono text-sm font-bold text-indigo-400 bg-indigo-950 border border-indigo-500/20 px-2.5 py-1 rounded-lg">{{ $bundle->code }}</span>
                     <span class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 text-slate-400 rounded-lg">
                         {{ $bundle->assets->count() }} Aset
                     </span>
@@ -82,7 +80,7 @@
     </div>
 
     {{-- Asset Table --}}
-    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800/80">
             <h2 class="font-bold text-white flex items-center gap-2">
                 <svg class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +103,7 @@
             <div class="overflow-x-auto" role="region" aria-label="Aset dalam paket" tabindex="0">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-800/80 bg-slate-900/80">
+                        <tr class="border-b border-slate-800/80 bg-slate-900">
                             <th class="text-left px-5 py-4 text-xs uppercase tracking-wider text-slate-500 font-semibold">No</th>
                             <th class="text-left px-5 py-4 text-xs uppercase tracking-wider text-slate-500 font-semibold">Aset</th>
                             <th class="text-left px-5 py-4 text-xs uppercase tracking-wider text-slate-500 font-semibold hidden md:table-cell">Kategori</th>
@@ -116,7 +114,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/50">
                         @foreach($bundle->assets as $i => $asset)
-                        <tr class="hover:bg-slate-800/20 transition-colors duration-150">
+                        <tr class="hover:bg-slate-800 transition-colors duration-150">
                             <td class="px-5 py-4 text-slate-500 text-xs">{{ $i + 1 }}</td>
                             <td class="px-5 py-4">
                                 <p class="font-medium text-slate-200">{{ $asset->name }}</p>
@@ -134,14 +132,14 @@
                             <td class="px-5 py-4">
                                 @php
                                     $badges = [
-                                        'standby'                   => ['cls' => 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400', 'dot' => 'bg-emerald-400', 'label' => 'Standby'],
-                                        'digunakan'                 => ['cls' => 'bg-blue-500/10 border-blue-500/25 text-blue-400',     'dot' => 'bg-blue-400',    'label' => 'Digunakan'],
-                                        'maintenance'               => ['cls' => 'bg-amber-500/10 border-amber-500/25 text-amber-400',  'dot' => 'bg-amber-400',   'label' => 'Maintenance'],
-                                        'rusak'                     => ['cls' => 'bg-rose-500/10 border-rose-500/25 text-rose-400',     'dot' => 'bg-rose-400',    'label' => 'Rusak'],
-                                        'fraud'                     => ['cls' => 'bg-red-500/10 border-red-500/25 text-red-400',        'dot' => 'bg-red-400',     'label' => 'Fraud'],
-                                        'write_off'                 => ['cls' => 'bg-slate-600/10 border-slate-600/25 text-slate-400',  'dot' => 'bg-slate-400',   'label' => 'Write Off'],
-                                        'pending_fraud_approval'    => ['cls' => 'bg-amber-500/10 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending Fraud'],
-                                        'pending_write_off_approval'=> ['cls' => 'bg-amber-500/10 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending W/O'],
+                                        'standby'                   => ['cls' => 'bg-emerald-950 border-emerald-500/25 text-emerald-400', 'dot' => 'bg-emerald-400', 'label' => 'Standby'],
+                                        'digunakan'                 => ['cls' => 'bg-blue-950 border-blue-500/25 text-blue-400',     'dot' => 'bg-blue-400',    'label' => 'Digunakan'],
+                                        'maintenance'               => ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-400',  'dot' => 'bg-amber-400',   'label' => 'Maintenance'],
+                                        'rusak'                     => ['cls' => 'bg-rose-950 border-rose-500/25 text-rose-400',     'dot' => 'bg-rose-400',    'label' => 'Rusak'],
+                                        'fraud'                     => ['cls' => 'bg-red-950 border-red-500/25 text-red-400',        'dot' => 'bg-red-400',     'label' => 'Fraud'],
+                                        'write_off'                 => ['cls' => 'bg-slate-600 border-slate-600/25 text-slate-400',  'dot' => 'bg-slate-400',   'label' => 'Write Off'],
+                                        'pending_fraud_approval'    => ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending Fraud'],
+                                        'pending_write_off_approval'=> ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending W/O'],
                                     ];
                                     $b = $badges[$asset->status] ?? ['cls' => 'bg-slate-700 border-slate-600 text-slate-400', 'dot' => 'bg-slate-400', 'label' => $asset->status];
                                 @endphp

@@ -13,11 +13,11 @@
 
     @php
         $navigation = [
-            ['dashboard', 'Ringkasan', ['dashboard'], 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'],
+            ['dashboard', 'Dashboard', ['dashboard'], 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'],
             ['assets.index', 'Daftar aset', ['assets.index', 'assets.create', 'assets.show', 'assets.edit'], 'M8 4h8l4 4v12H4V4h4zm0 7h8m-8 4h8'],
             ['bundles.index', 'Paket aset', ['bundles.*'], 'M4 7h16v13H4zm2 0V4h12v3m-8 5h4'],
-            ['assets.scan', 'Scan aset', ['assets.scan'], 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5m3-3h10'],
-            ['assets.rfid.validate', 'Validasi RFID', ['assets.rfid.validate', 'assets.rfid.history'], 'M5 8a10 10 0 0 0 0 8m3-6a5 5 0 0 0 0 4m8-4a5 5 0 0 1 0 4m3-6a10 10 0 0 1 0 8m-7-4h.01'],
+            ['assets.scan', 'Cek aset', ['assets.scan'], 'M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5m3-3h10'],
+            ['assets.rfid.validate', 'Periksa tag RFID', ['assets.rfid.validate', 'assets.rfid.history'], 'M5 8a10 10 0 0 0 0 8m3-6a5 5 0 0 0 0 4m8-4a5 5 0 0 1 0 4m3-6a10 10 0 0 1 0 8m-7-4h.01'],
             ['tickets.index', 'Tiket perbaikan', ['tickets.index', 'tickets.show'], 'M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4zm9 2v8'],
             ['locations.index', 'Lokasi', ['locations.*'], 'M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0zm-5 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z'],
             ['assets.history', 'Riwayat aktivitas', ['assets.history'], 'M21 12a9 9 0 1 1-3-6.7M21 4v5h-5m-4-1v5l3 2'],
@@ -33,7 +33,7 @@
     <aside id="app-sidebar" class="ops-sidebar" aria-label="Sidebar">
         <div class="ops-sidebar-header">
             <a class="ops-brand" href="{{ route('dashboard') }}" aria-label="Inventaris TI, ringkasan">
-                <span class="ops-brand-mark" aria-hidden="true">TI</span>
+                <span class="ops-brand-mark ops-brand-logo" aria-hidden="true"><img src="{{ asset('images/logo-ti-white.png') }}" width="252" height="80" alt=""></span>
                 <span class="ops-nav-label">Inventaris TI <small>Politeknik Negeri Padang</small></span>
             </a>
             <button type="button" id="sidebar-close-btn" class="ops-icon-button ops-mobile-only" aria-label="Tutup menu">
@@ -71,20 +71,28 @@
 
     <div class="ops-main" id="app-main">
         <header class="ops-topbar">
-            <button type="button" class="ops-icon-button ops-mobile-only" id="mobile-hamburger" aria-controls="app-sidebar" aria-expanded="false" aria-label="Buka menu">
+            <button type="button" class="ops-icon-button ops-menu-toggle ops-mobile-only" id="mobile-hamburger" aria-controls="app-sidebar" aria-expanded="false" aria-label="Buka menu">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                     <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
-            <button type="button" class="ops-icon-button ops-desktop-only" id="sidebar-collapse-btn" aria-controls="app-sidebar" aria-expanded="true" aria-label="Ciutkan menu" title="Ciutkan menu">
+            <button type="button" class="ops-icon-button ops-menu-toggle ops-desktop-only" id="sidebar-collapse-btn" aria-controls="app-sidebar" aria-expanded="true" aria-label="Ciutkan menu" title="Ciutkan menu">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18v16H3zm6 0v16m6-12-3 4 3 4"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14 6-6 6 6 6"/>
                 </svg>
             </button>
             <h1>@yield('page_title', 'Ringkasan')</h1>
+            <form class="ops-topbar-search" action="{{ route('assets.index') }}" method="GET" role="search">
+                <label for="global-asset-search" class="sr-only">Cari aset di inventaris</label>
+                <input id="global-asset-search" type="search" name="search" placeholder="Cari nama atau kode aset…">
+            </form>
+            @include('partials.theme-toggle')
             @unless(request()->routeIs('assets.scan'))
-                <a href="{{ route('assets.scan') }}" class="ops-button ops-button-secondary ops-scan-link">Scan aset</a>
+                <a href="{{ route('assets.scan') }}" class="ops-button ops-button-secondary ops-scan-link">Cek aset</a>
             @endunless
+            @if(request()->routeIs('dashboard'))
+                <a href="{{ route('assets.create') }}" class="ops-button ops-button-primary"><span aria-hidden="true">+</span> Tambah aset</a>
+            @endif
         </header>
 
         <main id="main-content" class="ops-content" tabindex="-1">

@@ -14,6 +14,29 @@ class RaspiStreamTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_unknown_tag_is_available_to_forms_without_registering_an_asset(): void
+    {
+        $first = ['rfid_uid' => 'NEW-TAG-001', 'scan_id' => (string) Str::uuid()];
+        $second = ['rfid_uid' => 'NEW-TAG-002', 'scan_id' => (string) Str::uuid()];
+        $token = ['X-API-Token' => 'test-rfid-token'];
+
+        $this->postJson(route('api.rfid.read'), $first)->assertUnauthorized();
+        $this->getJson(route('assets.scan.latest-rfid'))->assertUnauthorized();
+        $this->postJson(route('api.rfid.read'), ['rfid_uid' => 'A', 'scan_id' => 'bad'], $token)->assertUnprocessable();
+        $this->postJson(route('api.rfid.read'), $first, $token)->assertOk();
+        $this->postJson(route('api.rfid.read'), $second, $token)->assertOk();
+        $this->postJson(route('api.rfid.read'), $first, $token)->assertOk();
+
+        $this->actingAs(User::factory()->create());
+        $this->getJson(route('assets.scan.latest-rfid'))->assertOk()
+            ->assertJsonPath('data.rfid_uid', 'NEW-TAG-002')
+            ->assertJsonPath('data.scan_id', $second['scan_id']);
+        $this->assertDatabaseCount('assets', 0);
+        $this->assertDatabaseCount('asset_histories', 0);
+        $this->travel(31)->seconds();
+        $this->getJson(route('assets.scan.latest-rfid'))->assertOk()->assertJsonPath('data', null);
+    }
+
     public function test_camera_accepts_authenticated_jpegs_and_serves_fresh_frames_to_staff(): void
     {
         $originalStorage = storage_path();
@@ -31,13 +54,22 @@ class RaspiStreamTest extends TestCase
                 ->assertOk()->assertJson(['success' => true]);
 
             $this->get(route('assets.scan.live-frame'))->assertRedirect(route('login'));
-            $this->actingAs(User::factory()->create())
+            $frame = $this->actingAs(User::factory()->create())
                 ->get(route('assets.scan.live-frame'))
                 ->assertOk()->assertHeader('Content-Type', 'image/jpeg')->assertHeader('X-Raspi-Status', 'online');
             $this->assertSame(file_get_contents($jpeg->getRealPath()), File::get(storage_path('app/raspi_frame.jpg')));
+            $etag = $frame->headers->get('ETag');
+            $this->assertNotEmpty($etag);
+            $this->get(route('assets.scan.live-frame'), ['If-None-Match' => $etag])
+                ->assertStatus(304)->assertHeader('X-Raspi-Status', 'online');
+
+            $this->post(route('api.raspi.frame'), ['frame' => UploadedFile::fake()->image('next.jpg', 32, 24)], $token)
+                ->assertOk();
+            $latest = $this->get(route('assets.scan.live-frame'), ['If-None-Match' => $etag])->assertOk();
+            $this->assertNotSame($etag, $latest->headers->get('ETag'));
 
             touch(storage_path('app/raspi_frame.jpg'), time() - 20);
-            $this->get(route('assets.scan.live-frame'))
+            $this->get(route('assets.scan.live-frame'), ['If-None-Match' => $latest->headers->get('ETag')])
                 ->assertOk()->assertHeader('X-Raspi-Status', 'offline')->assertJsonPath('status', 'offline');
             $this->get(route('assets.scan.proxy-stream'))->assertServiceUnavailable();
         } finally {
@@ -77,5 +109,9 @@ class RaspiStreamTest extends TestCase
         $this->getJson(route('assets.rfid.validate'))->assertUnprocessable();
         $this->getJson(route('assets.rfid.validate', ['rfid_uid' => 'A1B2C3D4']))
             ->assertOk()->assertJsonPath('data.id', $asset->id);
+
+        $this->postJson(route('assets.scan.lookup'), [
+            'code' => 'http://192.168.1.10/a/TI-TEST-0001',
+        ])->assertOk()->assertJsonPath('data.id', $asset->id);
     }
 }

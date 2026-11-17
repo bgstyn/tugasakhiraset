@@ -14,14 +14,14 @@
             </svg>
             Kembali ke Formulir
         </a>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-full animate-pulse">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-full animate-pulse">
             <span class="h-2 w-2 rounded-full bg-amber-500"></span>
             Pratinjau Draft Aset (Belum Disimpan)
         </span>
     </div>
 
     {{-- Info Summary Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-none">
         <div>
             <span class="block text-slate-550 text-[10px] uppercase font-semibold tracking-wider">Nama Aset Master</span>
             <span class="text-sm font-bold text-white mt-0.5 block">{{ $validated['name'] }}</span>
@@ -47,7 +47,7 @@
     </div>
 
     {{-- Main List Grid --}}
-    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl shadow-none overflow-hidden">
         <div class="p-6 border-b border-slate-800/60 flex items-center justify-between">
             <div>
                 <h4 class="font-bold text-white text-base">Daftar Unit Aset IT Baru</h4>
@@ -70,10 +70,10 @@
                 </thead>
                 <tbody class="divide-y divide-slate-850 text-slate-300">
                     @foreach($previewItems as $index => $item)
-                        <tr class="hover:bg-slate-950/40 transition">
+                        <tr class="hover:bg-slate-950 transition">
                             <td class="py-4 px-6 text-center text-slate-500 font-medium">{{ $index + 1 }}</td>
                             <td class="py-4 px-6">
-                                <span class="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded font-mono text-xs font-semibold">
+                                <span class="px-2.5 py-1 bg-indigo-950 border border-indigo-500/20 text-indigo-300 rounded font-mono text-xs font-semibold">
                                     {{ $item['asset_id'] }}
                                 </span>
                             </td>
@@ -116,14 +116,14 @@
             <!-- JavaScript will append input elements into this form container before submitting -->
             <div id="dynamic-inputs-container"></div>
 
-            <div class="p-6 bg-slate-950/45 border-t border-slate-800 flex items-center justify-between gap-4">
+            <div class="p-6 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-4">
                 <p class="text-xs text-slate-500 hidden sm:block">Dengan menekan tombol Simpan, aset-aset di atas akan langsung ditambahkan ke database.</p>
 
                 <div class="flex items-center gap-3 ml-auto w-full sm:w-auto">
                     <a href="javascript:history.back()" class="w-1/2 sm:w-auto text-center px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer">
                         Koreksi Data
                     </a>
-                    <button type="submit" onclick="submitBulkForm(event)" class="w-1/2 sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-2">
+                    <button type="submit" onclick="submitBulkForm(event)" class="w-1/2 sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-2">
                         Simpan Aset
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

@@ -93,7 +93,8 @@ def main():
             camera=cv2.VideoCapture(c.camera_index,cv2.CAP_V4L2)
             if not camera.isOpened():
                 raise RuntimeError('Webcam tidak terbuka; cek /dev/video0 dan grup video')
-            detector=cv2.QRCodeDetector()
+            from hardware import QrDecoder
+            detector=QrDecoder(cv2)
             try:
                 print('Arahkan QR Code; Ctrl+C selesai')
                 seen=set()
@@ -101,7 +102,7 @@ def main():
                     ok,frame=camera.read()
                     if not ok:
                         raise RuntimeError('Webcam gagal membaca gambar')
-                    decoded,_,_=detector.detectAndDecode(frame)
+                    decoded,_=detector.decode(frame)
                     if decoded and decoded not in seen:
                         seen.add(decoded)
                         print('QR:',decoded)

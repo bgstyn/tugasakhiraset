@@ -17,11 +17,14 @@
                 @endunless
                 <span>Inventaris TI <small>Politeknik Negeri Padang</small></span>
             </div>
-            @if(auth()->check())
-                <a href="{{ route('dashboard') }}" class="ops-button ops-button-secondary">Ringkasan</a>
-            @elseif(! request()->routeIs('login'))
-                <a href="{{ route('login') }}" class="ops-button ops-button-secondary">Masuk staf</a>
-            @endif
+            <div class="ops-inline-actions">
+                @include('partials.theme-toggle')
+                @if(auth()->check())
+                    <a href="{{ route('dashboard') }}" class="ops-button ops-button-secondary">Ringkasan</a>
+                @elseif(! request()->routeIs('login'))
+                    <a href="{{ route('login') }}" class="ops-button ops-button-secondary">Masuk staf</a>
+                @endif
+            </div>
         </div>
     </header>
     <main id="main-content" class="ops-public-content" tabindex="-1">

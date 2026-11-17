@@ -13,6 +13,29 @@ use Illuminate\Support\Facades\Validator;
 
 class RfidController extends Controller
 {
+    public function readUid(Request $request)
+    {
+        $read = $request->validate([
+            'rfid_uid' => 'required|string|max:100',
+            'scan_id' => 'required|uuid',
+        ]);
+        if (Cache::add('rfid_read_seen:'.$read['scan_id'], true, 60)) {
+            Cache::put('latest_rfid_read', $read + [
+                'received_at' => (int) (microtime(true) * 1000),
+            ], 30);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function getLatestUid()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => Cache::get('latest_rfid_read'),
+        ])->header('Cache-Control', 'no-store');
+    }
+
     /**
      * API Endpoint for Raspberry Pi or RFID scanner to lookup or update assets.
      */
@@ -445,7 +468,7 @@ class RfidController extends Controller
         return @file_get_contents($path) ?: null;
     }
 
-    public function getLiveFrame()
+    public function getLiveFrame(Request $request)
     {
         $frame = $this->latestFrame();
         $headers = [
@@ -461,10 +484,14 @@ class RfidController extends Controller
             ], 200, $headers);
         }
 
-        return response($frame, 200, $headers + [
+        $response = response($frame, 200, $headers + [
             'Content-Type' => 'image/jpeg',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+        $response->setEtag(hash('sha256', $frame));
+        $response->isNotModified($request);
+
+        return $response;
     }
 
     public function getLiveStream()
@@ -474,17 +501,21 @@ class RfidController extends Controller
         }
 
         return response()->stream(function () {
-            for ($i = 0; $i < 60 && ! connection_aborted(); $i++) {
+            $previousFrame = null;
+            for ($i = 0; $i < 150 && ! connection_aborted(); $i++) {
                 $frame = $this->latestFrame();
                 if ($frame === null) {
                     break;
                 }
-                echo "--frame\r\nContent-Type: image/jpeg\r\n\r\n".$frame."\r\n";
-                if (ob_get_level() > 0) {
-                    @ob_flush();
+                if ($frame !== $previousFrame) {
+                    echo "--frame\r\nContent-Type: image/jpeg\r\n\r\n".$frame."\r\n";
+                    if (ob_get_level() > 0) {
+                        @ob_flush();
+                    }
+                    flush();
+                    $previousFrame = $frame;
                 }
-                flush();
-                usleep(500000);
+                usleep(200000);
             }
         }, 200, [
             'Content-Type' => 'multipart/x-mixed-replace; boundary=frame',

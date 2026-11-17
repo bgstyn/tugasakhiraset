@@ -13,7 +13,7 @@
             <p class="text-slate-400 text-sm mt-0.5">Kelola persetujuan perubahan status Fraud, Write Off, dan Permohonan Replacement Aset.</p>
         </div>
         @if($pendingCount > 0)
-            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-sm font-semibold">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-950 border border-amber-500/25 text-amber-300 text-sm font-semibold">
                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                 {{ $pendingCount }} Pengajuan Menunggu
             </span>
@@ -22,26 +22,26 @@
 
     {{-- Flash Messages --}}
     @if(session('success'))
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm shadow-md">
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-sm shadow-none">
             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ session('success') }}
         </div>
     @endif
     @if(session('error'))
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-sm shadow-md">
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-rose-950 border border-rose-500/25 text-rose-300 text-sm shadow-none">
             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ session('error') }}
         </div>
     @endif
 
     {{-- Filter Tabs --}}
-    <div class="flex gap-2 bg-slate-900/60 border border-slate-800/80 rounded-xl p-1.5 w-fit">
+    <div class="flex gap-2 bg-slate-900 border border-slate-800/80 rounded-xl p-1.5 w-fit">
         <a href="{{ route('admin.approvals.index', ['filter' => 'pending']) }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ $filter === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/25' : 'text-slate-400 hover:text-slate-200' }}">
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ $filter === 'pending' ? 'bg-amber-950 text-amber-300 border border-amber-500/25' : 'text-slate-400 hover:text-slate-200' }}">
             🟡 Menunggu Persetujuan
         </a>
         <a href="{{ route('admin.approvals.index', ['filter' => 'all']) }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ $filter === 'all' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/25' : 'text-slate-400 hover:text-slate-200' }}">
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ $filter === 'all' ? 'bg-indigo-950 text-indigo-300 border border-indigo-500/25' : 'text-slate-400 hover:text-slate-200' }}">
             Semua Riwayat
         </a>
     </div>
@@ -49,7 +49,7 @@
     {{-- ───────────────────────────────────────────────────────────────── --}}
     {{-- SECTION 1: FRAUD & WRITE OFF APPROVALS --}}
     {{-- ───────────────────────────────────────────────────────────────── --}}
-    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-4">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -57,12 +57,12 @@
             Persetujuan Status (Fraud / Write Off)
         </h3>
         
-        <div class="bg-slate-950/40 rounded-xl overflow-hidden border border-slate-850">
+        <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-850">
             @if($approvals->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
                         <thead>
-                            <tr class="border-b border-slate-800/80 bg-slate-900/80 text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <tr class="border-b border-slate-800/80 bg-slate-900 text-xs font-bold uppercase tracking-wider text-slate-400">
                                 <th class="px-5 py-4">Aset</th>
                                 <th class="px-5 py-4">Jenis</th>
                                 <th class="px-5 py-4 hidden md:table-cell">Pengaju</th>
@@ -72,7 +72,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-850 text-xs">
                             @foreach($approvals as $approval)
-                            <tr class="hover:bg-slate-900/20 transition duration-150">
+                            <tr class="hover:bg-slate-900 transition duration-150">
                                 <td class="px-5 py-4">
                                     <div class="font-bold text-slate-200">{{ $approval->asset_name }}</div>
                                     @if($approval->asset)
@@ -81,9 +81,9 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     @if($approval->type === 'fraud')
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-455">🔴 Fraud</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-500/20 text-rose-455">🔴 Fraud</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700/60 border border-slate-600/30 text-slate-300">⚫ Write Off</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 border border-slate-600/30 text-slate-300">⚫ Write Off</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 hidden md:table-cell">
@@ -92,11 +92,11 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     @if($approval->status === 'pending')
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-300 uppercase">Menunggu</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 border border-amber-500/20 text-amber-300 uppercase">Menunggu</span>
                                     @elseif($approval->status === 'approved')
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 uppercase">Disetujui</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 border border-emerald-500/20 text-emerald-400 uppercase">Disetujui</span>
                                     @else
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-400 uppercase">Ditolak</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-500/20 text-rose-400 uppercase">Ditolak</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-right space-x-2">
@@ -129,7 +129,7 @@
     {{-- ───────────────────────────────────────────────────────────────── --}}
     {{-- SECTION 2: REPLACEMENT REQUESTS --}}
     {{-- ───────────────────────────────────────────────────────────────── --}}
-    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-lg space-y-4">
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none space-y-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -137,12 +137,12 @@
             Permohonan Penggantian Aset (Replacement)
         </h3>
         
-        <div class="bg-slate-950/40 rounded-xl overflow-hidden border border-slate-850">
+        <div class="bg-slate-950 rounded-xl overflow-hidden border border-slate-850">
             @if($replacements->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
                         <thead>
-                            <tr class="border-b border-slate-800/80 bg-slate-900/80 text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <tr class="border-b border-slate-800/80 bg-slate-900 text-xs font-bold uppercase tracking-wider text-slate-400">
                                 <th class="px-5 py-4">Aset</th>
                                 <th class="px-5 py-4">Alasan Kerusakan / Penggantian</th>
                                 <th class="px-5 py-4 hidden md:table-cell">Pemohon</th>
@@ -152,7 +152,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-855 text-xs">
                             @foreach($replacements as $rep)
-                            <tr class="hover:bg-slate-900/20 transition duration-150">
+                            <tr class="hover:bg-slate-900 transition duration-150">
                                 <td class="px-5 py-4">
                                     <div class="font-bold text-slate-200">{{ $rep->asset->name }}</div>
                                     <div class="text-[10px] text-slate-500 font-mono mt-0.5">{{ $rep->asset->asset_id }}</div>
@@ -166,11 +166,11 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     @if($rep->status === 'pending')
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-300 uppercase">Menunggu</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 border border-amber-500/20 text-amber-300 uppercase">Menunggu</span>
                                     @elseif($rep->status === 'approved')
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 uppercase">Disetujui</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 border border-emerald-500/20 text-emerald-400 uppercase">Disetujui</span>
                                     @else
-                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 text-rose-400 uppercase">Ditolak</span>
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-950 border border-rose-500/20 text-rose-400 uppercase">Ditolak</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4 text-right space-x-2">
@@ -206,8 +206,8 @@
 {{-- 1. Approvals Detail Modal --}}
 {{-- ====================================================== --}}
 <div id="detailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeDetailModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeDetailModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between p-6 border-b border-slate-800">
             <h3 class="text-lg font-bold text-white">Detail Pengajuan Approval</h3>
             <button onclick="closeDetailModal()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer">
@@ -224,8 +224,8 @@
 {{-- 2. Replacement Detail Modal --}}
 {{-- ====================================================== --}}
 <div id="repDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeRepDetailModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-xl">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeRepDetailModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-xl">
         <div class="flex items-center justify-between p-6 border-b border-slate-800">
             <h3 class="text-lg font-bold text-white">Detail Pengajuan Replacement</h3>
             <button onclick="closeRepDetailModal()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer">
@@ -242,10 +242,10 @@
 {{-- 3. Approvals Approve Modal --}}
 {{-- ====================================================== --}}
 <div id="approveModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeApproveModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeApproveModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-md">
         <div class="p-6">
-            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-950 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg class="h-7 w-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
             <h3 class="text-center text-lg font-bold text-white mb-1">Setujui Pengajuan?</h3>
@@ -265,10 +265,10 @@
 {{-- 4. Approvals Reject Modal --}}
 {{-- ====================================================== --}}
 <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeRejectModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeRejectModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-md">
         <div class="p-6">
-            <div class="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 rounded-2xl bg-rose-950 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg class="h-7 w-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
             <h3 class="text-center text-lg font-bold text-white mb-1">Tolak Pengajuan</h3>
@@ -294,10 +294,10 @@
 {{-- 5. Replacement Approve Modal --}}
 {{-- ====================================================== --}}
 <div id="approveRepModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeApproveReplacementModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeApproveReplacementModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-md">
         <div class="p-6">
-            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-950 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg class="h-7 w-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
             <h3 class="text-center text-lg font-bold text-white mb-1">Setujui Replacement?</h3>
@@ -322,10 +322,10 @@
 {{-- 6. Replacement Reject Modal --}}
 {{-- ====================================================== --}}
 <div id="rejectRepModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeRejectReplacementModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="absolute inset-0 bg-slate-950" onclick="closeRejectReplacementModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl shadow-none w-full max-w-md">
         <div class="p-6">
-            <div class="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 rounded-2xl bg-rose-950 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg class="h-7 w-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
             <h3 class="text-center text-lg font-bold text-white mb-1">Tolak Replacement</h3>
@@ -359,9 +359,9 @@ function openDetailModal(id) {
 
     const typeLabel = approval.type === 'fraud' ? '🔴 Fraud' : '⚫ Write Off';
     const statusBadge = {
-        pending: '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs">🟡 Menunggu</span>',
-        approved: '<span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs">✅ Disetujui</span>',
-        rejected: '<span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs">❌ Ditolak</span>',
+        pending: '<span class="px-2 py-0.5 rounded bg-amber-950 border border-amber-500/25 text-amber-300 text-xs">🟡 Menunggu</span>',
+        approved: '<span class="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-xs">✅ Disetujui</span>',
+        rejected: '<span class="px-2 py-0.5 rounded bg-rose-950 border border-rose-500/25 text-rose-300 text-xs">❌ Ditolak</span>',
     }[approval.status];
 
     let docHtml = '<span class="text-slate-550 italic">Tidak ada dokumen</span>';
@@ -380,9 +380,9 @@ function openDetailModal(id) {
 
     let resultHtml = '';
     if (approval.status === 'approved') {
-        resultHtml = `<div class="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15"><span class="text-xs text-slate-500">Disetujui oleh</span><div class="text-emerald-300 font-semibold mt-0.5">${approval.approved_by}</div><div class="text-xs text-slate-500 mt-0.5">${approval.approved_at ? new Date(approval.approved_at).toLocaleString('id-ID') : '-'}</div></div>`;
+        resultHtml = `<div class="p-3 rounded-xl bg-emerald-950 border border-emerald-500/15"><span class="text-xs text-slate-500">Disetujui oleh</span><div class="text-emerald-300 font-semibold mt-0.5">${approval.approved_by}</div><div class="text-xs text-slate-500 mt-0.5">${approval.approved_at ? new Date(approval.approved_at).toLocaleString('id-ID') : '-'}</div></div>`;
     } else if (approval.status === 'rejected') {
-        resultHtml = `<div class="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15"><span class="text-xs text-slate-500">Ditolak oleh</span><div class="text-rose-300 font-semibold mt-0.5">${approval.rejected_by}</div><div class="text-xs text-slate-500 mt-0.5">${approval.rejected_at ? new Date(approval.rejected_at).toLocaleString('id-ID') : '-'}</div><div class="mt-2 text-slate-300 text-xs bg-slate-800/60 p-2 rounded-lg">${approval.rejection_reason}</div></div>`;
+        resultHtml = `<div class="p-3 rounded-xl bg-rose-950 border border-rose-500/15"><span class="text-xs text-slate-500">Ditolak oleh</span><div class="text-rose-300 font-semibold mt-0.5">${approval.rejected_by}</div><div class="text-xs text-slate-500 mt-0.5">${approval.rejected_at ? new Date(approval.rejected_at).toLocaleString('id-ID') : '-'}</div><div class="mt-2 text-slate-300 text-xs bg-slate-800 p-2 rounded-lg">${approval.rejection_reason}</div></div>`;
     }
 
     document.getElementById('detailModalBody').innerHTML = `
@@ -394,8 +394,8 @@ function openDetailModal(id) {
             <div><span class="text-xs text-slate-500 uppercase tracking-wider">Status</span><div class="mt-1">${statusBadge}</div></div>
             <div><span class="text-xs text-slate-500 uppercase tracking-wider">Status Sebelumnya</span><div class="mt-1 text-slate-400 text-xs font-mono">${approval.previous_status}</div></div>
         </div>
-        <div><span class="text-xs text-slate-500 uppercase tracking-wider">Alasan Pengajuan</span><div class="mt-1.5 p-3 bg-slate-800/60 rounded-xl text-slate-300 text-sm leading-relaxed">${approval.reason}</div></div>
-        ${approval.notes ? `<div><span class="text-xs text-slate-500 uppercase tracking-wider">Catatan Tambahan</span><div class="mt-1.5 p-3 bg-slate-800/60 rounded-xl text-slate-400 text-sm">${approval.notes}</div></div>` : ''}
+        <div><span class="text-xs text-slate-500 uppercase tracking-wider">Alasan Pengajuan</span><div class="mt-1.5 p-3 bg-slate-800 rounded-xl text-slate-300 text-sm leading-relaxed">${approval.reason}</div></div>
+        ${approval.notes ? `<div><span class="text-xs text-slate-500 uppercase tracking-wider">Catatan Tambahan</span><div class="mt-1.5 p-3 bg-slate-800 rounded-xl text-slate-400 text-sm">${approval.notes}</div></div>` : ''}
         <div><span class="text-xs text-slate-500 uppercase tracking-wider">Dokumen Surat</span><div class="mt-1.5">${docHtml}</div></div>
         ${resultHtml ? `<div>${resultHtml}</div>` : ''}
     `;
@@ -439,16 +439,16 @@ function openReplacementDetailModal(id) {
     if (!rep) return;
 
     const statusBadge = {
-        pending: '<span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs">🟡 Menunggu</span>',
-        approved: '<span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs">✅ Disetujui</span>',
-        rejected: '<span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs">❌ Ditolak</span>',
+        pending: '<span class="px-2 py-0.5 rounded bg-amber-950 border border-amber-500/25 text-amber-300 text-xs">🟡 Menunggu</span>',
+        approved: '<span class="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-xs">✅ Disetujui</span>',
+        rejected: '<span class="px-2 py-0.5 rounded bg-rose-950 border border-rose-500/25 text-rose-300 text-xs">❌ Ditolak</span>',
     }[rep.status];
 
     let resultHtml = '';
     if (rep.status === 'approved') {
-        resultHtml = `<div class="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15"><span class="text-xs text-slate-500">Disetujui oleh</span><div class="text-emerald-300 font-semibold mt-0.5">${rep.resolver ? rep.resolver.name : 'Admin'}</div><div class="text-xs text-slate-500 mt-0.5">${rep.resolved_at ? new Date(rep.resolved_at).toLocaleString('id-ID') : '-'}</div>${rep.notes ? `<div class="mt-2 text-slate-350 text-xs bg-slate-800/60 p-2 rounded-lg">${rep.notes}</div>` : ''}</div>`;
+        resultHtml = `<div class="p-3 rounded-xl bg-emerald-950 border border-emerald-500/15"><span class="text-xs text-slate-500">Disetujui oleh</span><div class="text-emerald-300 font-semibold mt-0.5">${rep.resolver ? rep.resolver.name : 'Admin'}</div><div class="text-xs text-slate-500 mt-0.5">${rep.resolved_at ? new Date(rep.resolved_at).toLocaleString('id-ID') : '-'}</div>${rep.notes ? `<div class="mt-2 text-slate-350 text-xs bg-slate-800 p-2 rounded-lg">${rep.notes}</div>` : ''}</div>`;
     } else if (rep.status === 'rejected') {
-        resultHtml = `<div class="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15"><span class="text-xs text-slate-500">Ditolak oleh</span><div class="text-rose-300 font-semibold mt-0.5">${rep.resolver ? rep.resolver.name : 'Admin'}</div><div class="text-xs text-slate-500 mt-0.5">${rep.resolved_at ? new Date(rep.resolved_at).toLocaleString('id-ID') : '-'}</div><div class="mt-2 text-slate-300 text-xs bg-slate-800/60 p-2 rounded-lg">${rep.notes}</div></div>`;
+        resultHtml = `<div class="p-3 rounded-xl bg-rose-950 border border-rose-500/15"><span class="text-xs text-slate-500">Ditolak oleh</span><div class="text-rose-300 font-semibold mt-0.5">${rep.resolver ? rep.resolver.name : 'Admin'}</div><div class="text-xs text-slate-500 mt-0.5">${rep.resolved_at ? new Date(rep.resolved_at).toLocaleString('id-ID') : '-'}</div><div class="mt-2 text-slate-300 text-xs bg-slate-800 p-2 rounded-lg">${rep.notes}</div></div>`;
     }
 
     document.getElementById('repDetailModalBody').innerHTML = `
@@ -458,7 +458,7 @@ function openReplacementDetailModal(id) {
             <div><span class="text-xs text-slate-500 uppercase tracking-wider">Tanggal</span><div class="mt-1 text-slate-200 text-xs">${new Date(rep.created_at).toLocaleString('id-ID')}</div></div>
             <div><span class="text-xs text-slate-500 uppercase tracking-wider">Status</span><div class="mt-1">${statusBadge}</div></div>
         </div>
-        <div><span class="text-xs text-slate-500 uppercase tracking-wider">Alasan Penggantian (Replacement)</span><div class="mt-1.5 p-3 bg-slate-800/60 rounded-xl text-slate-300 text-sm leading-relaxed">${rep.reason}</div></div>
+        <div><span class="text-xs text-slate-500 uppercase tracking-wider">Alasan Penggantian (Replacement)</span><div class="mt-1.5 p-3 bg-slate-800 rounded-xl text-slate-300 text-sm leading-relaxed">${rep.reason}</div></div>
         ${resultHtml ? `<div class="pt-2">${resultHtml}</div>` : ''}
     `;
 
