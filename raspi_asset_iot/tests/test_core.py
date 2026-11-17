@@ -21,6 +21,7 @@ class TestScanner(unittest.TestCase):
         pair = RegistrationPair(90)
         self.assertIsNone(pair.add('rfid', 'AA11', now=1))
         self.assertEqual(pair.add('qr', 'https://server.test/a/ASSET-1', now=2), {'asset_id':'ASSET-1','rfid_uid':'AA11'})
+        pair.reset()  # controller acknowledges the committed SQLite write
         self.assertIsNone(pair.add('qr', 'ASSET-2', now=3))
         self.assertEqual(pair.add('rfid', 'BB22', now=4), {'asset_id':'ASSET-2','rfid_uid':'BB22'})
 

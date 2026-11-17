@@ -2,13 +2,14 @@ import queue
 import sqlite3
 import sys
 import threading
+import time
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, call, patch
 
 from api import ApiClient, FrameUploader, RfidReadPublisher, HeartbeatPublisher
 from app import Controller
-from core import RegistrationPair
+from core import RegistrationPair, ScanEpoch, ScanReading
 from hardware import QrDecoder, WebcamWorker
 
 
@@ -47,10 +48,12 @@ class FrameUploadTest(unittest.TestCase):
         controller = Controller.__new__(Controller)
         controller.uid_publisher = Mock()
         controller.mode = 'register'
+        controller.config = SimpleNamespace(scan_max_age_seconds=5)
+        controller.scan_epoch = ScanEpoch()
         controller.pair = RegistrationPair()
         controller.show = Mock()
         controller.outbox = Mock()
-        controller.on_scan('rfid', 'NEW-TAG-001')
+        controller.on_scan('rfid', ScanReading('NEW-TAG-001', 0, time.monotonic()))
         controller.uid_publisher.submit.assert_called_once_with('NEW-TAG-001')
         controller.outbox.enqueue.assert_not_called()
         self.assertEqual(controller.pair.uid, 'NEW-TAG-001')
@@ -109,21 +112,24 @@ class FrameUploadTest(unittest.TestCase):
         detector = cv2.QRCodeDetector.return_value
         detector.detectAndDecode.return_value = ('TI-DEMO-001', None, None)
 
-        def final_frame():
-            stop.set()
+        timestamps = iter([0, .08, .16, .24, .32])
+        clock = Mock(return_value=0)
+        def read_frame():
+            clock.return_value = next(timestamps)
+            if clock.return_value == .32:
+                stop.set()
             return True, frame
 
-        frame_reads = iter([False, False, False, False, True])
-        cv2.VideoCapture.return_value.read.side_effect = lambda: final_frame() if next(frame_reads) else (True, frame)
+        cv2.VideoCapture.return_value.read.side_effect = read_frame
         publish = Mock()
         worker = WebcamWorker(events, stop, publish_frame=publish)
-        with patch.dict(sys.modules, {'cv2': cv2, 'pyzbar': None}), patch('hardware.time.monotonic', side_effect=[0, .08, .16, .24, .32]):
+        with patch.dict(sys.modules, {'cv2': cv2, 'pyzbar': None}), patch('hardware.time.monotonic', clock):
             worker.run()
 
         self.assertEqual(publish.call_args_list, [call(b'jpeg'), call(b'jpeg')])
         self.assertEqual(cv2.resize.call_args_list, [call(frame, (480, 360), interpolation=cv2.INTER_AREA)] * 2)
         self.assertEqual(detector.detectAndDecode.call_args_list, [call(frame)] * 5)
-        self.assertEqual(events.get_nowait(), ('qr', 'TI-DEMO-001'))
+        self.assertEqual(events.get_nowait(), ('qr', ScanReading('TI-DEMO-001', 0, 0)))
         self.assertTrue(events.empty())
 
     def test_zbar_precedes_opencv_and_invalid_text_can_fall_back(self):

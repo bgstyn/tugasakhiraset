@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 from app import Controller
 from config import Config
-from core import Result
+from core import Result, ScanEpoch
 from hardware import Indicator
 
 
@@ -45,7 +45,7 @@ class TestIndicator(unittest.TestCase):
         config = SimpleNamespace(
             led_enabled=True, led_type='common_anode', led_red_gpio=13,
             led_green_gpio=5, led_blue_gpio=6, buzzer_enabled=True,
-            buzzer_gpio=18, lcd_enabled=False,
+            buzzer_gpio=18, lcd_enabled=False, lcd_address=0x27,
         )
         gpiozero = SimpleNamespace(DigitalOutputDevice=FakeOutput)
         with patch.dict(sys.modules, {'gpiozero': gpiozero}):
@@ -81,12 +81,53 @@ class TestIndicator(unittest.TestCase):
         self.assertFalse(buzzer.level)
         self.assertTrue(buzzer.closed)
 
+    def test_new_led_deadline_cannot_be_cancelled_by_the_previous_color(self):
+        self.indicator.color('failure', seconds=.05)
+        self.indicator.color('success', seconds=.3)
+        time.sleep(.1)
+        self.assertFalse(self.indicator.led['green'].level)
+        self.assertTrue(self.indicator.led['red'].level)
+        green = self.indicator.led['green']
+        with green.changed:
+            self.assertTrue(green.changed.wait_for(lambda: green.level, timeout=1))
+
+    def test_lcd_block_does_not_block_display_submission_or_led_expiry(self):
+        release, entered = threading.Event(), threading.Event()
+        lcd = Mock()
+        lcd.show.side_effect = lambda *args: (entered.set(), release.wait(2))
+        config = Config(led_enabled=True, buzzer_enabled=False, lcd_enabled=True)
+        gpiozero = SimpleNamespace(DigitalOutputDevice=FakeOutput)
+        with patch.dict(sys.modules, {'gpiozero': gpiozero}), patch('hardware.Lcd1602', return_value=lcd):
+            indicator = Indicator(None, config)
+            try:
+                self.assertTrue(indicator.lcd_attempted.wait(1))
+                indicator.display('TEST', 'I2C BLOCKED')
+                self.assertTrue(entered.wait(1))
+                indicator.display('NEW', 'LATEST SCREEN')
+                indicator.color('success', seconds=.05)
+                green = indicator.led['green']
+                with green.changed:
+                    self.assertTrue(green.changed.wait_for(lambda: green.level, timeout=1))
+                self.assertFalse(release.is_set())
+            finally:
+                release.set()
+                self.assertTrue(indicator.close())
+        self.assertFalse(any(worker.is_alive() for worker in indicator.workers))
+
+    def test_calls_after_close_do_not_reactivate_gpio(self):
+        self.indicator.close()
+        before = {name: list(output.transitions) for name, output in self.indicator.led.items()}
+        self.indicator.color('success', seconds=1)
+        self.indicator.beep(2)
+        self.assertEqual(before, {name: output.transitions for name, output in self.indicator.led.items()})
+
     def test_missing_lcd_does_not_disable_led_feedback(self):
         config = Config(led_enabled=True, buzzer_enabled=False, lcd_enabled=True, led_type='common_anode')
         gpiozero = SimpleNamespace(DigitalOutputDevice=FakeOutput)
         with patch.dict(sys.modules, {'gpiozero': gpiozero}), patch('hardware.Lcd1602', side_effect=OSError):
             with self.assertLogs('hardware', level='ERROR'):
                 indicator = Indicator(None, config)
+                self.assertTrue(indicator.lcd_attempted.wait(1))
         self.addCleanup(indicator.close)
         self.assertIsNone(indicator.lcd)
         indicator.color('success')
@@ -96,6 +137,8 @@ class TestIndicator(unittest.TestCase):
         controller = Controller.__new__(Controller)
         controller.show = Mock()
         controller.outbox = Mock()
+        controller.scan_epoch = ScanEpoch()
+        controller.event_epochs = {}
         event = {'id': 'event', 'kind': 'check'}
         for state, color, beeps in [('confirmed', 'success', 1), ('rejected', 'failure', 2), ('retry', 'offline', 2)]:
             with self.subTest(state=state):

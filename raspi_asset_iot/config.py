@@ -1,5 +1,6 @@
 """Application settings. All pin numbers are BCM numbers."""
 import os
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,6 +41,10 @@ class Config:
     pair_timeout_seconds: float = float(os.getenv('PAIR_TIMEOUT_SECONDS', '90'))
     http_timeout_seconds: float = float(os.getenv('HTTP_TIMEOUT_SECONDS', '6'))
     pending_limit: int = int(os.getenv('PENDING_LIMIT', '10000'))
+    success_retention_days: int = int(os.getenv('SUCCESS_RETENTION_DAYS', '30'))
+    scan_max_age_seconds: float = float(os.getenv('SCAN_MAX_AGE_SECONDS', '5'))
+    worker_stall_seconds: float = float(os.getenv('WORKER_STALL_SECONDS', '30'))
+    shutdown_timeout_seconds: float = float(os.getenv('SHUTDOWN_TIMEOUT_SECONDS', '8'))
     simulate: bool = _bool('SIMULATE', False)
 
     def validate(self):
@@ -55,6 +60,22 @@ class Config:
             raise ValueError('RFID_UID_FORMAT harus hex atau decimal')
         if self.pending_limit < 1:
             raise ValueError('PENDING_LIMIT harus >=1')
+        for name, value, minimum, maximum in (
+            ('HTTP_TIMEOUT_SECONDS', self.http_timeout_seconds, .2, 15),
+            ('PAIR_TIMEOUT_SECONDS', self.pair_timeout_seconds, 1, 600),
+            ('SCAN_REPEAT_SECONDS', self.scan_repeat_seconds, 0, 60),
+            ('SCAN_MAX_AGE_SECONDS', self.scan_max_age_seconds, .1, 30),
+            ('WORKER_STALL_SECONDS', self.worker_stall_seconds, 15, 120),
+            ('SHUTDOWN_TIMEOUT_SECONDS', self.shutdown_timeout_seconds, 1, 20),
+        ):
+            if not math.isfinite(value) or not minimum <= value <= maximum:
+                raise ValueError(f'{name} harus antara {minimum} dan {maximum}')
+        if self.worker_stall_seconds < self.http_timeout_seconds * 2 + 5:
+            raise ValueError('WORKER_STALL_SECONDS terlalu kecil untuk HTTP_TIMEOUT_SECONDS')
+        if self.shutdown_timeout_seconds < self.http_timeout_seconds + 1:
+            raise ValueError('SHUTDOWN_TIMEOUT_SECONDS harus >= HTTP_TIMEOUT_SECONDS + 1')
+        if self.success_retention_days < 0:
+            raise ValueError('SUCCESS_RETENTION_DAYS harus >=0')
         if not 1 <= self.camera_stream_fps <= 8:
             raise ValueError('CAMERA_STREAM_FPS harus antara 1 dan 8')
         used = {

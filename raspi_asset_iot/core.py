@@ -2,6 +2,7 @@
 import json
 import re
 import sqlite3
+import threading
 import time
 import uuid
 from contextlib import contextmanager
@@ -39,6 +40,37 @@ class Result:
     http_status: int = 0
 
 
+@dataclass(frozen=True)
+class ScanReading:
+    value: str
+    epoch: int
+    captured_at: float
+
+
+class ScanEpoch:
+    """Capture before device I/O; a mode transition invalidates in-flight scans."""
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._value = 0
+
+    def snapshot(self):
+        with self._lock:
+            return self._value
+
+    def advance(self):
+        with self._lock:
+            self._value += 1
+
+
+class Worker(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.progress_at = time.monotonic()
+
+    def touch(self):
+        self.progress_at = time.monotonic()
+
+
 class Outbox:
     """Durable queue; one connection per action so the worker thread can run independently."""
     def __init__(self, db_path: str, pending_limit: int = 10000):
@@ -59,10 +91,11 @@ class Outbox:
                 processed_at REAL
             )''')
             db.execute('CREATE INDEX IF NOT EXISTS idx_events_due ON events(state, next_attempt, created_at)')
+            db.execute('CREATE INDEX IF NOT EXISTS idx_events_processed ON events(state, processed_at)')
 
     @contextmanager
     def _connect(self):
-        db = sqlite3.connect(self.path, timeout=8)
+        db = sqlite3.connect(self.path, timeout=1)
         try:
             db.execute('PRAGMA synchronous = FULL')
             with db:
@@ -114,6 +147,15 @@ class Outbox:
         with self._connect() as db:
             return dict(db.execute('SELECT state,COUNT(*) FROM events GROUP BY state').fetchall())
 
+    def prune_success(self, retention_days=30, batch_size=1000):
+        """Never remove pending/rejected transactions. Zero days disables retention."""
+        if retention_days <= 0:
+            return 0
+        cutoff = time.time() - retention_days * 86400
+        with self._connect() as db:
+            result = db.execute("DELETE FROM events WHERE id IN (SELECT id FROM events WHERE state='success' AND processed_at < ? ORDER BY processed_at LIMIT ?)", (cutoff, batch_size))
+            return result.rowcount
+
 
 class RegistrationPair:
     def __init__(self, timeout: float = 90):
@@ -127,9 +169,17 @@ class RegistrationPair:
 
     def expired(self, now=None):
         now = now if now is not None else time.monotonic()
-        return self.updated is not None and now - self.updated >= self.timeout
+        return self.payload is None and self.updated is not None and now - self.updated >= self.timeout
+
+    @property
+    def payload(self):
+        if self.asset_id and self.uid:
+            return {'asset_id': self.asset_id, 'rfid_uid': self.uid}
+        return None
 
     def add(self, kind: str, value: str, now=None):
+        if self.payload:
+            return self.payload  # freeze until the controller acknowledges durable storage
         now = now if now is not None else time.monotonic()
         if self.expired(now):
             self.reset()
@@ -140,8 +190,4 @@ class RegistrationPair:
         else:
             raise ValueError('Jenis scan tidak dikenal')
         self.updated = now
-        if self.asset_id and self.uid:
-            result = {'asset_id': self.asset_id, 'rfid_uid': self.uid}
-            self.reset()
-            return result
-        return None
+        return self.payload

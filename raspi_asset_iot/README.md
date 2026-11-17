@@ -2,6 +2,8 @@
 
 Program Python **headless** untuk **Raspberry Pi 5 / Raspberry Pi OS Trixie 64-bit**. Jalankan `app.py` untuk scanner GPIO. Prosedur migrasi backend dan penggantian label QR ada di [panduan Laravel dan Raspberry Pi](../docs/AUDIT-IOT.md).
 
+Perbaikan race condition, pasangan yang gagal disimpan, indikator independen, pemeriksaan RC522, retensi, dan shutdown didokumentasikan di [audit keandalan scanner](../docs/AUDIT-RASPI-RELIABILITY.md), termasuk backup, penerapan, rollback, dan pengujian hardware.
+
 ## Fitur
 
 - **Mode CEK** (switch posisi kiri): QR lewat USB webcam atau RFID UID lewat RC522, validasi ke `POST /api/rfid-scan`. LCD menyatakan **ASET TERDAFTAR** / **BELUM TERDAFTAR** hanya berdasarkan respons API yang benar.

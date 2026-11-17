@@ -7,7 +7,7 @@ from collections import deque
 
 import requests
 
-from core import Result
+from core import Result, Worker
 
 LOG = logging.getLogger(__name__)
 
@@ -54,6 +54,8 @@ class ApiClient:
             title = 'DAFTAR DITOLAK' if registration else 'DATA DITOLAK'
             if status == 404:
                 title = 'ASET TIDAK ADA' if registration else 'BELUM TERDAFTAR'
+            if body.get('code') == 'RFID_INACTIVE':
+                title = 'RFID NONAKTIF'
             message = body.get('message') or 'Validasi gagal'
             return Result('rejected', title, str(message), status)
         return Result('retry', 'API ERROR', f'Respons API tidak diharapkan (HTTP {status})', status)
@@ -62,7 +64,7 @@ class ApiClient:
         self.session.close()
 
 
-class FrameUploader(threading.Thread):
+class FrameUploader(Worker):
     """Upload recent JPEGs independently of the durable scan sender."""
 
     def __init__(self, api, stop):
@@ -80,6 +82,7 @@ class FrameUploader(threading.Thread):
         previous = None
         try:
             while not self.stop.is_set():
+                self.touch()
                 self.frame_ready.wait(0.1)
                 self.frame_ready.clear()
                 if self.stop.is_set():
@@ -115,7 +118,7 @@ class FrameUploader(threading.Thread):
             self.api.close()
 
 
-class RfidReadPublisher(threading.Thread):
+class RfidReadPublisher(Worker):
     """Short-lived UID notifications for browser forms. Asset changes use Outbox."""
 
     def __init__(self, api, stop):
@@ -131,6 +134,7 @@ class RfidReadPublisher(threading.Thread):
     def run(self):
         try:
             while not self.stop.is_set():
+                self.touch()
                 self.ready.wait(0.1)
                 self.ready.clear()
                 try:
@@ -152,7 +156,7 @@ class RfidReadPublisher(threading.Thread):
             self.api.close()
 
 
-class HeartbeatPublisher(threading.Thread):
+class HeartbeatPublisher(Worker):
     """Current device health only; never enqueue or replay old heartbeats."""
 
     def __init__(self, api, stop, snapshot):
@@ -162,6 +166,7 @@ class HeartbeatPublisher(threading.Thread):
     def run(self):
         try:
             while not self.stop.is_set():
+                self.touch()
                 try:
                     response = self.api.session.post(
                         self.api.base_url + '/raspi/heartbeat', json=self.snapshot(),

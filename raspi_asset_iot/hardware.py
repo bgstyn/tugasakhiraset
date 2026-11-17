@@ -7,6 +7,8 @@ import queue
 import threading
 import time
 
+from core import ScanReading, Worker
+
 LOG = logging.getLogger(__name__)
 
 
@@ -43,6 +45,7 @@ class RC522:
     T_PRESCALER = 0x2B
     T_RELOAD_H = 0x2C
     T_RELOAD_L = 0x2D
+    VERSION = 0x37
 
     def __init__(self, pin_factory, rst_gpio=25, spi_device=0):
         import spidev
@@ -54,12 +57,23 @@ class RC522:
             self.spi.max_speed_hz = 1000000
             self.spi.mode = 0
             self._init_chip()
+            self.version = self.check_health()
+            if self.version not in (0x90, 0x91, 0x92):
+                LOG.warning('Versi RC522 kompatibel/nonstandar: 0x%02X', self.version)
         except Exception:
             self.close()
             raise
 
     def _wr(self, reg, val):
         self.spi.xfer2([(reg << 1) & 0x7E, val & 0xFF])
+
+    def check_health(self):
+        version = self._rd(self.VERSION)
+        if version in (0x00, 0xFF) or version != self._rd(self.VERSION):
+            raise OSError('RC522 tidak merespons; periksa SPI, daya, dan wiring')
+        if getattr(self, 'version', version) != version:
+            raise OSError('Identitas RC522 berubah saat berjalan')
+        return version
 
     def _rd(self, reg):
         return self.spi.xfer2([((reg << 1) & 0x7E) | 0x80, 0])[1]
@@ -221,46 +235,54 @@ class Lcd1602:
 
 
 class Indicator:
+    """LED deadlines, buzzer and I2C each have an independent owner."""
     def __init__(self, pin_factory, config):
         from gpiozero import DigitalOutputDevice
-        active_high = config.led_type == 'common_cathode'
-        self.led = {}
-        self.buzzer = None
-        self.lcd = None
-        self.last_lines = None
-        self.beeps = queue.Queue(maxsize=15)
+        self.led, self.buzzer, self.lcd = {}, None, None
+        self.last_lines = self._screen = None
         self.stop = threading.Event()
-        self.beep_thread = threading.Thread(target=self._beeper, daemon=True)
+        self._condition = threading.Condition(threading.RLock())
+        self._deadline = None
+        self._closed = False
+        self._lcd_address = config.lcd_address
+        self.lcd_attempted = threading.Event()
+        self.beeps = queue.Queue(maxsize=15)
+        self.led_thread = self.beep_thread = self.lcd_thread = None
         try:
             if config.led_enabled:
+                active_high = config.led_type == 'common_cathode'
                 for name, gpio in (('red', config.led_red_gpio), ('green', config.led_green_gpio), ('blue', config.led_blue_gpio)):
                     self.led[name] = DigitalOutputDevice(gpio, active_high=active_high, initial_value=False, pin_factory=pin_factory)
+                self.led_thread = Worker(target=self._led_loop, daemon=True, name='led-timer')
             if config.buzzer_enabled:
                 self.buzzer = DigitalOutputDevice(config.buzzer_gpio, active_high=True, initial_value=False, pin_factory=pin_factory)
-                self.beep_thread.start()
+                self.beep_thread = Worker(target=self._beeper, daemon=True, name='buzzer')
+            if config.lcd_enabled:
+                self.lcd_thread = Worker(target=self._lcd_loop, daemon=True, name='lcd')
+            for worker in self.workers:
+                worker.start()
         except Exception:
             self.close()
             raise
-        if config.lcd_enabled:
-            try:
-                self.lcd = Lcd1602(config.lcd_address)
-            except (ImportError, OSError):
-                LOG.exception('LCD tidak tersedia; scanner tetap berjalan')
+
+    @property
+    def workers(self):
+        return tuple(w for w in (self.led_thread, self.beep_thread, self.lcd_thread) if w is not None)
+
+    @property
+    def outputs_stopped(self):
+        return all(w is None or not w.is_alive() for w in (self.led_thread, self.beep_thread))
 
     def display(self, line1, line2):
-        current = (line1[:16], line2[:16])
-        if current == self.last_lines:
-            return
-        self.last_lines = current
-        LOG.info('LCD: %-16s | %s', current[0], current[1])
-        if self.lcd:
-            try:
-                self.lcd.show(*current)
-            except Exception:
-                self.last_lines = None
-                LOG.exception('LCD gagal (cek alamat, kabel, level shifter)')
+        current = (str(line1)[:16], str(line2)[:16])
+        with self._condition:
+            if self._closed or current == self.last_lines:
+                return
+            self.last_lines = self._screen = current
+            self._condition.notify_all()
+        LOG.info('LCD: %-16s | %s', *current)
 
-    def color(self, name):
+    def _set_color_locked(self, name):
         selected = {'success': 'green', 'failure': 'red', 'offline': 'blue'}.get(name)
         for channel, led in self.led.items():
             if channel != selected:
@@ -268,49 +290,115 @@ class Indicator:
         if selected in self.led:
             self.led[selected].on()
 
+    def color(self, name, seconds=None):
+        with self._condition:
+            if self._closed:
+                return
+            self._set_color_locked(name)
+            self._deadline = time.monotonic() + seconds if name and seconds is not None else None
+            self._condition.notify_all()
+
+    def _led_loop(self):
+        with self._condition:
+            while not self.stop.is_set():
+                self.led_thread.touch()
+                delay = .1
+                if self._deadline is not None:
+                    delay = max(0, min(delay, self._deadline - time.monotonic()))
+                    if delay == 0:
+                        self._set_color_locked(None)
+                        self._deadline = None
+                        delay = .1
+                self._condition.wait(delay)
+
     def beep(self, times):
-        if not self.buzzer:
-            return
-        try:
-            self.beeps.put_nowait(times)
-        except queue.Full:
-            pass
+        if self.buzzer and not self.stop.is_set():
+            try:
+                self.beeps.put_nowait(times)
+            except queue.Full:
+                LOG.warning('Antrean buzzer penuh; bunyi tambahan dilewati')
 
     def _beeper(self):
         while not self.stop.is_set():
+            self.beep_thread.touch()
             try:
-                n = self.beeps.get(timeout=0.2)
+                n = self.beeps.get(timeout=.2)
             except queue.Empty:
                 continue
             for i in range(n):
-                if self.stop.is_set():
-                    break
-                self.buzzer.on()
+                with self._condition:
+                    if self.stop.is_set():
+                        return
+                    self.buzzer.on()
                 try:
-                    self.stop.wait(0.12)
+                    self.stop.wait(.12)
                 finally:
-                    self.buzzer.off()
-                if i + 1 < n and self.stop.wait(0.14):
-                    break
+                    with self._condition:
+                        self.buzzer.off()
+                if i + 1 < n and self.stop.wait(.14):
+                    return
 
-    def close(self):
-        self.stop.set()
-        for led in self.led.values():
-            try:
-                led.off()
-            except Exception:
-                LOG.exception('Gagal mematikan kanal LED')
-        if self.beep_thread.ident is not None:
-            self.beep_thread.join()
-        for device in [*self.led.values(), self.buzzer, self.lcd]:
-            if device is None:
-                continue
-            try:
-                if device is self.buzzer:
-                    device.off()
-                device.close()
-            except Exception:
-                LOG.exception('Gagal menutup perangkat indikator')
+    def _lcd_loop(self):
+        sent = None
+        try:
+            while not self.stop.is_set():
+                self.lcd_thread.touch()
+                try:
+                    if self.lcd is None:
+                        self.lcd = Lcd1602(self._lcd_address)
+                        sent = None
+                        self.lcd_attempted.set()
+                    with self._condition:
+                        current = self._screen
+                        if current is None or current == sent:
+                            self._condition.wait(.2)
+                            continue
+                    self.lcd.show(*current)
+                    sent = current
+                except Exception:
+                    LOG.exception('LCD gagal; scanner tetap berjalan, ulangi 5 detik')
+                    self.lcd_attempted.set()
+                    if self.lcd is not None:
+                        try:
+                            self.lcd.close()
+                        except Exception:
+                            LOG.exception('Gagal menutup LCD')
+                        self.lcd = None
+                    self.stop.wait(5)
+        finally:
+            if self.lcd is not None:
+                try:
+                    self.lcd.close()
+                except Exception:
+                    LOG.exception('Gagal mematikan LCD')
+                self.lcd = None
+
+    def close(self, timeout=2):
+        with self._condition:
+            if self._closed:
+                return not any(w.is_alive() for w in self.workers)
+            self._closed = True
+            self.stop.set()
+            self._deadline = None
+            for device in (*self.led.values(), self.buzzer):
+                if device is not None:
+                    try:
+                        device.off()
+                    except Exception:
+                        LOG.exception('Gagal mematikan output')
+            self._condition.notify_all()
+        deadline = time.monotonic() + timeout
+        for worker in self.workers:
+            if worker.ident is not None:
+                worker.join(max(0, deadline - time.monotonic()))
+        if self.outputs_stopped:
+            for device in (*self.led.values(), self.buzzer):
+                if device is not None:
+                    try:
+                        device.close()
+                    except Exception:
+                        LOG.exception('Gagal menutup output')
+        return not any(w.is_alive() for w in self.workers)
 
 
 class ModeSwitch:
@@ -360,13 +448,13 @@ class QrDecoder:
         return text, corners
 
 
-class WebcamWorker(threading.Thread):
-    def __init__(self, events, stop, camera_index=0, publish_frame=None, *, stream_fps=5):
+class WebcamWorker(Worker):
+    def __init__(self, events, stop, camera_index=0, publish_frame=None, *, stream_fps=5, scan_epoch=lambda: 0, repeat_seconds=3):
         super().__init__(daemon=True, name='webcam')
         self.events, self.stop, self.index = events, stop, camera_index
         self.publish_frame = publish_frame
         self.frame_interval = 1 / stream_fps
-        self.reset_detection = threading.Event()
+        self.scan_epoch, self.repeat_seconds = scan_epoch, repeat_seconds
         self.last_activity = None
 
     def _emit(self, event):
@@ -376,6 +464,7 @@ class WebcamWorker(threading.Thread):
         import cv2
         detector = QrDecoder(cv2)
         while not self.stop.is_set():
+            self.touch()
             cap = cv2.VideoCapture(self.index, cv2.CAP_V4L2)
             if not cap.isOpened():
                 LOG.error('Webcam /dev/video%s tidak terbuka; ulangi 5 detik', self.index)
@@ -388,11 +477,15 @@ class WebcamWorker(threading.Thread):
             cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             last, missing_since, unreadable_since, last_bad_report = None, None, None, 0
             next_frame_at = next_scan_at = 0
+            previous_epoch = last_sent = last_sent_at = None
             try:
                 while not self.stop.is_set():
-                    if self.reset_detection.is_set():
-                        self.reset_detection.clear()
+                    self.touch()
+                    epoch = self.scan_epoch()
+                    if epoch != previous_epoch:
+                        previous_epoch = epoch
                         last = None
+                        last_sent = last_sent_at = None
                     ok, frame = cap.read()
                     if not ok:
                         raise RuntimeError('Webcam gagal membaca frame')
@@ -417,7 +510,9 @@ class WebcamWorker(threading.Thread):
                         decoded = decoded.strip()
                         if decoded and decoded != last:
                             last = decoded
-                            self._emit(('qr', decoded))
+                            if decoded != last_sent or now - last_sent_at >= self.repeat_seconds:
+                                last_sent, last_sent_at = decoded, now
+                                self._emit(('qr', ScanReading(decoded, epoch, now)))
                     else:
                         if corners is not None:
                             if unreadable_since is None:
@@ -440,13 +535,13 @@ class WebcamWorker(threading.Thread):
             self.stop.wait(2)
 
 
-class RfidWorker(threading.Thread):
-    def __init__(self, events, stop, pin_factory, uid_format, rst_gpio=25, spi_device=0):
+class RfidWorker(Worker):
+    def __init__(self, events, stop, pin_factory, uid_format, rst_gpio=25, spi_device=0, *, scan_epoch=lambda: 0, repeat_seconds=3):
         super().__init__(daemon=True, name='rc522')
         self.events, self.stop = events, stop
         self.pin_factory, self.uid_format = pin_factory, uid_format
         self.rst_gpio, self.spi_device = rst_gpio, spi_device
-        self.reset_detection = threading.Event()
+        self.scan_epoch, self.repeat_seconds = scan_epoch, repeat_seconds
         self.last_activity = None
 
     def _emit(self, event):
@@ -454,23 +549,34 @@ class RfidWorker(threading.Thread):
 
     def run(self):
         while not self.stop.is_set():
+            self.touch()
             reader = None
             try:
                 reader = RC522(self.pin_factory, self.rst_gpio, self.spi_device)
                 last, empty_since = None, None
+                previous_epoch = last_sent = last_sent_at = None
+                next_health_at = 0
                 while not self.stop.is_set():
-                    if self.reset_detection.is_set():
-                        self.reset_detection.clear()
+                    self.touch()
+                    epoch = self.scan_epoch()
+                    if epoch != previous_epoch:
+                        previous_epoch = epoch
                         last = None
+                        last_sent = last_sent_at = None
                     raw = reader.read_uid()
                     now = time.monotonic()
+                    if now >= next_health_at:
+                        reader.check_health()
+                        next_health_at = now + 2
                     self.last_activity = now
                     if raw:
                         empty_since = None
                         uid = uid_as_string(raw, self.uid_format)
                         if uid != last:
                             last = uid
-                            self._emit(('rfid', uid))
+                            if uid != last_sent or now - last_sent_at >= self.repeat_seconds:
+                                last_sent, last_sent_at = uid, now
+                                self._emit(('rfid', ScanReading(uid, epoch, now)))
                     else:
                         if empty_since is None:
                             empty_since = now

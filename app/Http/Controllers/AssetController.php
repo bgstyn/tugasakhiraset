@@ -606,6 +606,10 @@ class AssetController extends Controller
                 ], 404);
             }
 
+            if ($asset->rfid_status !== 'aktif') {
+                return response()->json(['success' => false, 'code' => 'RFID_INACTIVE', 'message' => 'RFID tidak aktif. Aktifkan kembali melalui pengelolaan aset.'], 409);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => [

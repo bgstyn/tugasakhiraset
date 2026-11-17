@@ -77,6 +77,9 @@ class RfidController extends Controller
                     'message' => "Aset dengan RFID UID '{$rfidUid}' belum terdaftar."
                 ], 404);
             }
+            if ($asset->rfid_status !== 'aktif') {
+                return response()->json(['success' => false, 'code' => 'RFID_INACTIVE', 'message' => 'RFID tidak aktif. Aktifkan kembali melalui pengelolaan aset.'], 409);
+            }
         } elseif ($assetId) {
             // Clean up asset_id if full QR Code URL was sent (e.g. http://192.168.100.105:8000/a/TIPNP-2025-0001)
             $cleanAssetId = trim($assetId);
@@ -309,6 +312,10 @@ class RfidController extends Controller
                 'success' => false,
                 'message' => 'RFID belum terdaftar.'
             ], 404);
+        }
+
+        if ($asset->rfid_status !== 'aktif') {
+            return response()->json(['success' => false, 'code' => 'RFID_INACTIVE', 'message' => 'RFID tidak aktif. Aktifkan kembali melalui pengelolaan aset.'], 409);
         }
 
         return response()->json([
