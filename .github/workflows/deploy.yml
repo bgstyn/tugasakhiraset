@@ -58,6 +58,33 @@ jobs:
           python -m pip install requests python-dotenv
           python -m unittest discover -s tests -v
 
+      - name: Test frontend artifact installation
+        run: |
+          bash -n scripts/deploy.sh
+          bash -n scripts/install-frontend.sh
+          python -m unittest discover -s scripts/tests -v
+
+      - name: Setup Node.js for frontend build
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build frontend on GitHub runner
+        run: |
+          npm ci
+          npm run build
+          printf '%s\n' "$GITHUB_SHA" > public/build/.revision
+          tar -czf "$RUNNER_TEMP/frontend-build.tar.gz" -C public build
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: ${{ runner.temp }}/frontend-build.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
   # ─────────────────────────────────────────
   # JOB 2: Deploy ke AWS EC2 (hanya jika test lulus & push ke main)
   # ─────────────────────────────────────────
@@ -66,17 +93,45 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    concurrency:
+      group: ec2-production
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup SSH key
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: ${{ runner.temp }}/frontend
+
+      - name: Upload frontend to EC2
+        id: frontend
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+        run: |
+          set -euo pipefail
+          directory=$(ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$EC2_USERNAME@$EC2_HOST" 'mktemp -d /tmp/asset-frontend.XXXXXXXX')
+          [[ "$directory" =~ ^/tmp/asset-frontend\.[a-zA-Z0-9]+$ ]]
+          echo "directory=$directory" >> "$GITHUB_OUTPUT"
+          scp -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$RUNNER_TEMP/frontend/frontend-build.tar.gz" \
+            "$EC2_USERNAME@$EC2_HOST:$directory/frontend-build.tar.gz"
 
       - name: Preserve or initialize production .env
         env:
@@ -122,74 +177,44 @@ jobs:
           printf '%s' "$APP_ENV_PRODUCTION" | "${remote[@]}" "$command"
 
       - name: Deploy application via SSH
+        env:
+          EC2_APP_PATH: ${{ secrets.EC2_APP_PATH }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          FRONTEND_DIRECTORY: ${{ steps.frontend.outputs.directory }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'DEPLOY_SCRIPT'
-
-          set -e
-          APP_PATH="${{ secrets.EC2_APP_PATH }}"
-
-          echo "📁 [0/9] Checking project directory..."
-          if [ ! -d "$APP_PATH/.git" ]; then
-            echo "⬇️  First deploy — cloning repository..."
-            sudo mkdir -p "$APP_PATH"
-            sudo chown -R $USER:$USER "$APP_PATH"
-            git clone https://github.com/bgstyn/tugasakhiraset.git "$APP_PATH"
+          set -euo pipefail
+          printf -v command 'bash -s -- %q %q %q' "$EC2_APP_PATH" "$GITHUB_SHA" "$FRONTEND_DIRECTORY"
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$EC2_USERNAME@$EC2_HOST" "$command" <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+          export EC2_APP_PATH=$1
+          revision=$2
+          directory=$3
+          if [ ! -d "$EC2_APP_PATH/.git" ]; then
+            sudo mkdir -p "$EC2_APP_PATH"
+            sudo chown "$USER:$USER" "$EC2_APP_PATH"
+            git clone https://github.com/bgstyn/tugasakhiraset.git "$EC2_APP_PATH"
           fi
-
-          cd "$APP_PATH"
-
-          PHP_SERIES=$(php -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')
-          if ! php -r 'exit(extension_loaded("gd") ? 0 : 1);'; then
-            echo "Installing GD for PHP $PHP_SERIES..."
-            sudo -n apt-get update
-            sudo -n apt-get install -y --no-install-recommends "php${PHP_SERIES}-gd"
-            php -r 'exit(extension_loaded("gd") ? 0 : 1);'
-          fi
-
-          echo "📦 [1/9] Git pull latest code..."
-          git pull origin main
-
-          echo "🗂️  [2/9] Fix file permissions..."
-          sudo mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache
-          sudo chown -R $USER:$USER storage bootstrap/cache
-          sudo chmod -R 775 storage bootstrap/cache
-          touch storage/logs/laravel.log
-          chmod 664 storage/logs/laravel.log
-
-          echo "🔧 [3/9] Install Composer dependencies..."
-          composer install --no-dev --optimize-autoloader --no-interaction
-
-          echo "🎨 [4/9] Install NPM & build assets..."
-          npm ci
-          npm run build
-
-          echo "🗄️  [5/9] Run database migrations..."
-          php artisan migrate --force
-
-          echo "⚡ [6/9] Clear & cache configs..."
-          php artisan config:clear
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          php artisan event:cache
-
-          echo "🔄 [7/9] Restart queue workers..."
-          php artisan queue:restart
-
-          echo "🌐 [8/9] Set final permissions & reload web server..."
-          sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-          sudo chmod -R 775 storage bootstrap/cache
-          if systemctl is-active --quiet "php${PHP_SERIES}-fpm"; then
-            sudo systemctl reload "php${PHP_SERIES}-fpm"
-          fi
-          sudo systemctl reload nginx 2>/dev/null || \
-          sudo systemctl reload apache2 2>/dev/null || \
-          echo "⚠️  Web server reload skipped"
-
-          echo ""
-          echo "✅ Deploy selesai pada $(date '+%Y-%m-%d %H:%M:%S')"
+          cd "$EC2_APP_PATH"
+          git fetch origin main
+          # Never pair assets from this run with source from a newer push.
+          git merge --ff-only "$revision"
+          test "$(git rev-parse HEAD)" = "$revision"
+          bash scripts/deploy.sh "$directory/frontend-build.tar.gz" "$revision"
           DEPLOY_SCRIPT
+
+      - name: Remove uploaded temporary artifact
+        if: always() && steps.frontend.outputs.directory != ''
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          FRONTEND_DIRECTORY: ${{ steps.frontend.outputs.directory }}
+        run: |
+          [[ "$FRONTEND_DIRECTORY" =~ ^/tmp/asset-frontend\.[a-zA-Z0-9]+$ ]]
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$EC2_USERNAME@$EC2_HOST" \
+            "rm -f -- '$FRONTEND_DIRECTORY/frontend-build.tar.gz'; rmdir -- '$FRONTEND_DIRECTORY'"
 
       - name: Notify deploy success
         if: success()
