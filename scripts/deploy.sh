@@ -17,7 +17,7 @@ if ! php -r 'exit(extension_loaded("gd") ? 0 : 1);'; then
 fi
 
 echo '[1/7] Prepare writable Laravel directories'
-sudo mkdir -p storage/logs storage/framework/{cache,sessions,views} bootstrap/cache
+sudo mkdir -p storage/logs storage/framework/{cache,sessions,views} storage/app/public/tickets bootstrap/cache
 sudo chown -R "$USER:$USER" storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
 touch storage/logs/laravel.log
@@ -62,6 +62,7 @@ fi
 
 echo '[5/7] Run migrations and cache Laravel'
 php artisan migrate --force
+php artisan storage:link
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -71,6 +72,16 @@ echo '[6/7] Restart queue workers'
 php artisan queue:restart
 restore_permissions
 trap - EXIT
+sudo -u www-data test -w storage/app/public/tickets
+test "$(readlink -f public/storage)" = "$(readlink -f storage/app/public)"
+
+echo '[upload] Inspect active web-server upload configuration'
+if systemctl is-active --quiet nginx; then
+    sudo nginx -T 2>&1 | awk '/^# configuration file / || /^[[:space:]]*(listen |server_name |root |client_max_body_size |fastcgi_pass |include |location )/ { print }'
+fi
+if [ -f "/etc/php/${PHP_SERIES}/fpm/php.ini" ]; then
+    awk '/^[[:space:]]*(upload_max_filesize|post_max_size)[[:space:]]*=/ { print }' "/etc/php/${PHP_SERIES}/fpm/php.ini"
+fi
 
 echo '[7/7] Reload web server'
 if systemctl is-active --quiet "php${PHP_SERIES}-fpm"; then

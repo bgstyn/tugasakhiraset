@@ -177,7 +177,8 @@
         </a>
         
         <!-- Delete Button (Only for admin) -->
-        <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aset {{ $asset->name }}?')" class="inline w-full sm:w-auto">
+        @if($asset->status !== 'write_off')
+        <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm(@js('Hapus aset '.$asset->name.'? Tiket terkait ikut dihapus; riwayat perubahan aset tetap disimpan.'))" class="inline w-full sm:w-auto">
             @csrf
             @method('DELETE')
             <button type="submit" class="w-full sm:w-auto justify-center px-4 py-2 bg-slate-800 hover:bg-rose-900 text-rose-400 border border-slate-700 hover:border-rose-900 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
@@ -187,6 +188,7 @@
                 Hapus Aset
             </button>
         </form>
+        @endif
     </div>
 
     <section class="ops-surface asset-action-panel" aria-labelledby="asset-actions-title">

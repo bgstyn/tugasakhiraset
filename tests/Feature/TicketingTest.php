@@ -60,7 +60,7 @@ class TicketingTest extends TestCase
             'category' => 'PC',
         ]);
 
-        $file = UploadedFile::fake()->create('broken_pc.jpg', 100);
+        $file = UploadedFile::fake()->image('broken_pc.jpg', 160, 120);
 
         $response = $this->post(route('tickets.public.store', $asset->id), [
             'reporter_name' => 'Budi Santoso',
@@ -72,6 +72,8 @@ class TicketingTest extends TestCase
 
         $ticket = MaintenanceTicket::first();
         $this->assertNotNull($ticket);
+        $this->assertStringStartsWith('storage/tickets/', $ticket->photo);
+        Storage::disk('public')->assertExists(substr($ticket->photo, strlen('storage/')));
 
         $response->assertRedirect(route('tickets.public.success', $ticket->ticket_number));
 

@@ -8,6 +8,7 @@ use App\Models\AssetHistory;
 use App\Models\ReplacementRequest;
 use App\Services\AssetQrCode;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AssetController extends Controller
 {
@@ -303,26 +304,33 @@ class AssetController extends Controller
      */
     public function destroy(Asset $asset)
     {
-        $oldValues = $asset->only([
-            'name', 'asset_id', 'government_inventory_number', 'serial_number', 'year', 'building', 'floor', 'room', 'current_user', 'status',
-            'category', 'brand', 'model', 'specification'
-        ]);
-        $assetName = $asset->name;
+        $deleted = DB::transaction(function () use ($asset) {
+            $asset = Asset::query()->lockForUpdate()->findOrFail($asset->id);
+            if ($asset->status === 'write_off') {
+                return false;
+            }
+            $oldValues = $asset->only([
+                'name', 'asset_id', 'government_inventory_number', 'serial_number', 'year', 'building', 'floor', 'room', 'current_user', 'status',
+                'category', 'brand', 'model', 'specification',
+            ]);
+            $assetName = $asset->name;
+            $asset->delete();
+            $staff = session('staff_it', []);
+            AssetHistory::create([
+                'asset_id' => null,
+                'asset_name' => $assetName,
+                'action' => 'delete',
+                'changed_by_name' => $staff['name'] ?? auth()->user()->name,
+                'changed_by_position' => $staff['position'] ?? auth()->user()->position ?? auth()->user()->role ?? 'Staf',
+                'changed_by_location' => $staff['location'] ?? auth()->user()->location ?? '-',
+                'old_values' => $oldValues,
+            ]);
 
-        // Note: Relation has Cascade/Set Null constraint set up in migration
-        $asset->delete();
-
-        // Record History (asset_id is set to null, but asset_name is retained)
-        $staff = session('staff_it');
-        AssetHistory::create([
-            'asset_id' => null,
-            'asset_name' => $assetName,
-            'action' => 'delete',
-            'changed_by_name' => $staff['name'],
-            'changed_by_position' => $staff['position'],
-            'changed_by_location' => $staff['location'],
-            'old_values' => $oldValues,
-        ]);
+            return true;
+        });
+        if (! $deleted) {
+            return back()->with('error', 'Aset Write Off merupakan arsip permanen dan tidak dapat dihapus.');
+        }
 
         return redirect()->route('assets.index')->with('success', 'Aset berhasil dihapus dari sistem!');
     }

@@ -227,7 +227,8 @@
                                     </svg>
                                 </a>
                                 <!-- Delete -->
-                                <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aset {{ $asset->name }}? Semua riwayat juga akan dilepas.')" class="inline">
+                                @if($asset->status !== 'write_off')
+                                <form action="{{ route('assets.destroy', $asset->id) }}" method="POST" onsubmit="return confirm(@js('Hapus aset '.$asset->name.'? Tiket terkait ikut dihapus; riwayat perubahan aset tetap disimpan.'))" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Hapus Aset">
@@ -236,6 +237,7 @@
                                         </svg>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

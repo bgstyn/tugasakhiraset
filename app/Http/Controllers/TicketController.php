@@ -9,6 +9,8 @@ use App\Models\TicketHistory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class TicketController extends Controller
 {
@@ -33,31 +35,45 @@ class TicketController extends Controller
             'priority' => 'required|in:low,medium,high,critical',
         ]);
 
-        $photoPath = null;
+        $storedPhoto = null;
         if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/tickets'), $fileName);
-            $photoPath = 'uploads/tickets/' . $fileName;
+            try {
+                $storedPhoto = Storage::disk('public')->putFile('tickets', $request->file('photo'));
+            } catch (\League\Flysystem\FilesystemException $exception) {
+                report($exception);
+                throw ValidationException::withMessages(['photo' => 'Foto belum dapat disimpan. Coba lagi atau kirim laporan tanpa foto.']);
+            }
+            if ($storedPhoto === false) {
+                throw ValidationException::withMessages(['photo' => 'Foto belum dapat disimpan. Coba lagi atau kirim laporan tanpa foto.']);
+            }
         }
 
-        $ticket = MaintenanceTicket::create([
-            'asset_id' => $asset->id,
-            'reporter_name' => $validated['reporter_name'],
-            'reporter_contact' => $validated['reporter_contact'],
-            'description' => $validated['description'],
-            'photo' => $photoPath,
-            'priority' => $validated['priority'],
-            'status' => 'open',
-        ]);
+        try {
+            $ticket = DB::transaction(function () use ($asset, $validated, $storedPhoto) {
+                $ticket = MaintenanceTicket::create([
+                    'asset_id' => $asset->id,
+                    'reporter_name' => $validated['reporter_name'],
+                    'reporter_contact' => $validated['reporter_contact'] ?? null,
+                    'description' => $validated['description'],
+                    'photo' => $storedPhoto ? 'storage/'.$storedPhoto : null,
+                    'priority' => $validated['priority'],
+                    'status' => 'open',
+                ]);
+                TicketHistory::create([
+                    'ticket_id' => $ticket->id,
+                    'old_status' => null,
+                    'new_status' => 'open',
+                    'comment' => 'Tiket laporan kerusakan dibuat oleh pelapor.',
+                ]);
 
-        // Record initial status in history
-        TicketHistory::create([
-            'ticket_id' => $ticket->id,
-            'old_status' => null,
-            'new_status' => 'open',
-            'comment' => 'Tiket laporan kerusakan dibuat oleh pelapor.',
-        ]);
+                return $ticket;
+            });
+        } catch (\Throwable $exception) {
+            if ($storedPhoto) {
+                Storage::disk('public')->delete($storedPhoto);
+            }
+            throw $exception;
+        }
 
         return redirect()->route('tickets.public.success', $ticket->ticket_number);
     }
