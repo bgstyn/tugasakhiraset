@@ -181,10 +181,11 @@ class AssetController extends Controller
         $approvals = $asset->approvals()->orderBy('created_at', 'desc')->get();
         // Get bundles this asset belongs to
         $asset->load('bundles.location');
-        $pendingReplacement = auth()->check()
-            ? ReplacementRequest::where('asset_id', $asset->id)->where('status', 'pending')->latest()->first()
+        $replacementRequest = auth()->check()
+            ? ReplacementRequest::where('asset_id', $asset->id)->latest()->latest('id')->first()
             : null;
-        return view('assets.show', compact('asset', 'histories', 'approvals', 'pendingReplacement'));
+        $pendingReplacement = $replacementRequest?->status === 'pending' ? $replacementRequest : null;
+        return view('assets.show', compact('asset', 'histories', 'approvals', 'pendingReplacement', 'replacementRequest'));
     }
 
     /**
@@ -357,11 +358,14 @@ class AssetController extends Controller
         $cleanCode = rawurldecode(strtok($cleanCode, '?#') ?: '');
 
         // Look up by asset_id, rfid_uid, serial_number, or government_inventory_number
-        $asset = Asset::where('asset_id', $cleanCode)
+        $legacyId = preg_match('~^https?://[^/]+/assets/(\d+)/?(?:[?#].*)?$~', $code, $matches)
+            ? (int) $matches[1] : null;
+        $asset = Asset::when($legacyId, fn ($query) => $query->whereKey($legacyId))
+            ->when(!$legacyId, fn ($query) => $query->where('asset_id', $cleanCode)
             ->orWhere('asset_id', $code)
             ->orWhere('rfid_uid', $code)
             ->orWhere('serial_number', $cleanCode)
-            ->orWhere('government_inventory_number', $cleanCode)
+            ->orWhere('government_inventory_number', $cleanCode))
             ->first();
 
         if (!$asset) {
@@ -371,7 +375,7 @@ class AssetController extends Controller
             ], 404);
         }
 
-        return response()->json([
+        $response = [
             'success' => true,
             'message' => 'Aset berhasil ditemukan!',
             'data' => [
@@ -388,7 +392,12 @@ class AssetController extends Controller
                 'url' => route('assets.show', $asset->id)
             ],
             'redirect_url' => route('assets.show', $asset->id)
-        ]);
+        ];
+        $response['history'] = app(\App\Services\ScanCheckHistory::class)->record(
+            $response['data'], filled($asset->rfid_uid) && $asset->rfid_uid === $code ? 'rfid' : 'qr'
+        );
+
+        return response()->json($response);
     }
 
     /**

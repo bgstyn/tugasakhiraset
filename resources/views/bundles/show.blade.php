@@ -29,14 +29,6 @@
         </div>
     </div>
 
-    {{-- Flash --}}
-    @if(session('success'))
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-emerald-950 border border-emerald-500/25 text-emerald-300 text-sm">
-            <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ session('success') }}
-        </div>
-    @endif
-
     {{-- Bundle Hero Card --}}
     <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 relative overflow-hidden">
 
@@ -137,7 +129,7 @@
                                         'maintenance'               => ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-400',  'dot' => 'bg-amber-400',   'label' => 'Maintenance'],
                                         'rusak'                     => ['cls' => 'bg-rose-950 border-rose-500/25 text-rose-400',     'dot' => 'bg-rose-400',    'label' => 'Rusak'],
                                         'fraud'                     => ['cls' => 'bg-red-950 border-red-500/25 text-red-400',        'dot' => 'bg-red-400',     'label' => 'Fraud'],
-                                        'write_off'                 => ['cls' => 'bg-slate-600 border-slate-600/25 text-slate-400',  'dot' => 'bg-slate-400',   'label' => 'Write Off'],
+                                        'write_off'                 => ['cls' => 'asset-status-write-off bg-slate-600 border-slate-600/25 text-slate-400',  'dot' => 'bg-slate-400',   'label' => 'Write Off'],
                                         'pending_fraud_approval'    => ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending Fraud'],
                                         'pending_write_off_approval'=> ['cls' => 'bg-amber-950 border-amber-500/25 text-amber-300',  'dot' => 'bg-amber-400',   'label' => '⏳ Pending W/O'],
                                     ];

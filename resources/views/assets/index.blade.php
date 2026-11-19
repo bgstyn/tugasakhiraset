@@ -164,7 +164,7 @@
                                     Fraud / Hilang
                                 </span>
                             @elseif($asset->status === 'write_off')
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500 border border-slate-500/25 text-slate-400">
+                                <span class="asset-status-write-off inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500 border border-slate-500/25 text-slate-400">
                                     <span class="w-1.5 h-1.5 bg-slate-400 rounded-full mr-1.5"></span>
                                     Write Off
                                 </span>

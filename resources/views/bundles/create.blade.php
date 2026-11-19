@@ -126,7 +126,7 @@
                                                 'maintenance'              => 'bg-amber-950 text-amber-400',
                                                 'rusak'                    => 'bg-rose-950 text-rose-400',
                                                 'fraud'                    => 'bg-red-950 text-red-400',
-                                                'write_off'                => 'bg-slate-500 text-slate-400',
+                                                'write_off'                => 'asset-status-write-off bg-slate-500 text-slate-400',
                                                 'pending_fraud_approval'   => 'bg-amber-950 text-amber-300',
                                                 'pending_write_off_approval'=> 'bg-amber-950 text-amber-300',
                                             ];

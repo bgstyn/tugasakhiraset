@@ -1,4 +1,5 @@
-import { setText, showResult, showScanStatus, watchScans } from './scan-result';
+import { setText, showResult, showScanStatus } from './scan-result';
+import { createScanHistory } from './scan-history';
 
 const root = document.getElementById('asset-scanner');
 const { frameUrl, lookupUrl, detailUrl } = root.dataset;
@@ -12,6 +13,39 @@ const streamState = document.getElementById('raspi-stream-state');
 const streamHint = document.getElementById('raspi-stream-hint');
 const result = document.getElementById('scan-result');
 const cameraError = document.getElementById('browser-camera-error');
+const dialog = document.getElementById('scan-result-dialog');
+const pendingResults = [];
+let leaving = false;
+let resumeAt = 0;
+const history = createScanHistory(root.dataset, record => {
+    pendingResults.push(record);
+    if (pendingResults.length > 100) pendingResults.shift();
+    showNextResult();
+});
+
+function showNextResult() {
+    if (leaving || dialog.open || !pendingResults.length) return;
+    const record = pendingResults.shift();
+    showResult(record.data, detailUrl, 'Aset berhasil ditemukan.');
+    dialog.showModal();
+}
+document.getElementById('scan-dialog-close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+dialog.addEventListener('keydown', event => {
+    if (event.key !== 'Tab' || event.ctrlKey || event.metaKey || event.altKey) return;
+    const controls = [...dialog.querySelectorAll('a[href], button:not(:disabled), [tabindex="0"]')]
+        .filter(element => element.getClientRects().length);
+    const index = controls.indexOf(document.activeElement);
+    if (index < 0 || (event.shiftKey && index === 0) || (!event.shiftKey && index === controls.length - 1)) {
+        event.preventDefault();
+        controls[event.shiftKey ? controls.length - 1 : 0]?.focus();
+    }
+});
+dialog.addEventListener('close', () => {
+    result.hidden = true;
+    showScanStatus('Siap untuk scan QR atau RFID berikutnya.');
+    queueMicrotask(showNextResult);
+});
 
 let frameRequest;
 let frameTag;
@@ -90,17 +124,7 @@ function refreshFrames() {
 }
 
 async function lookupQr(code) {
-    if (lookupPending || (code === lastCode && performance.now() < retryLookupAt)) return;
-    // Keep older numeric asset links on this site's origin.
-    try {
-        const link = new URL(code, window.location.origin);
-        if (['http:', 'https:'].includes(link.protocol) && /^\/assets\/\d+\/?$/.test(link.pathname)) {
-            window.location.assign(link.pathname);
-            return;
-        }
-    } catch {
-        // Plain inventory codes are resolved by the lookup endpoint.
-    }
+    if (dialog.open || performance.now() < resumeAt || lookupPending || (code === lastCode && performance.now() < retryLookupAt)) return;
     lookupPending = true;
     lastCode = code;
     retryLookupAt = performance.now() + 3000;
@@ -118,7 +142,7 @@ async function lookupQr(code) {
         const data = await response.json();
         if (response.ok && data.success) {
             retryLookupAt = Infinity;
-            showResult(data.data, detailUrl, data.message);
+            history.accept(data.history);
         } else {
             showScanStatus(data.message || 'Kode aset tidak ditemukan.', 'error');
         }
@@ -165,17 +189,21 @@ async function selectCamera(mode) {
 picker.forEach(button => button.addEventListener('click', () => selectCamera(button.dataset.cameraMode)));
 document.getElementById('raspi-refresh').addEventListener('click', refreshFrames);
 document.getElementById('scan-reset').addEventListener('click', () => {
-    result.hidden = true;
+    dialog.close();
     lastCode = undefined;
+    resumeAt = performance.now() + 2000;
     showScanStatus('Menunggu scan QR atau RFID.');
 });
 window.addEventListener('pagehide', () => {
+    leaving = true;
+    pendingResults.length = 0;
+    dialog.close();
     frameRequest?.abort();
     clearPreview();
 });
 window.addEventListener('pageshow', event => {
+    leaving = false;
     if (event.persisted && !raspberryPanel.hidden) refreshFrames();
 });
 
 refreshFrames();
-watchScans(root.dataset, { requestPending: () => lookupPending });

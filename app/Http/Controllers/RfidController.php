@@ -178,6 +178,9 @@ class RfidController extends Controller
             ]
         ];
 
+        $responseData['history'] = app(\App\Services\ScanCheckHistory::class)->record(
+            $responseData['data'], $responseData['source'], $responseData['scan_id'], $responseData['received_at']
+        );
         $this->publishScan($request, $responseData);
 
         return response()->json($responseData, 200);

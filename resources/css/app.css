@@ -176,6 +176,106 @@ body { font-family: var(--font-sans); }
 .ops-flash[data-tone="success"] { color: #247d35; border-color: #b2d9bc; background: #edf8ef; }
 .ops-flash[data-tone="error"] { color: #b42323; border-color: #e6b7b7; background: #fceeee; }
 
+.ops-notifications { position: fixed; z-index: 90; inset: auto 24px 24px auto; width: min(400px, calc(100% - 32px)); display: grid; gap: 8px; pointer-events: none; }
+.ops-toast { display: flex; align-items: start; gap: 12px; padding: 16px; background: var(--ops-panel); color: var(--ops-text); border: 1px solid var(--ops-line); border-radius: var(--ops-radius); pointer-events: auto; animation: toast-appear 180ms ease-out; }
+.ops-toast-icon { flex: 0 0 24px; width: 24px; height: 24px; color: var(--ops-accent); }
+.ops-toast[data-tone="success"] .ops-toast-icon { color: var(--color-emerald-400); }
+.ops-toast[data-tone="error"] { border-color: var(--color-rose-400); }
+.ops-toast[data-tone="error"] .ops-toast-icon { color: var(--color-rose-400); }
+.ops-toast-body { flex: 1; min-width: 0; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.ops-toast-body a { display: inline-block; color: var(--ops-accent); margin-top: 8px; font-weight: 600; }
+.ops-toast-close { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; margin: -4px -4px -4px 0; color: var(--ops-muted); cursor: pointer; border-radius: 4px; }
+.ops-toast-close:hover { background: var(--ops-page); color: var(--ops-text); }
+.ops-toast-close svg { width: 18px; height: 18px; }
+@keyframes toast-appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.scan-result-dialog { margin: auto; padding: 0; width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; border: 1px solid var(--ops-line); border-radius: var(--ops-radius); background: var(--ops-panel); color: var(--ops-text); }
+.scan-result-dialog::backdrop { background: #000000b8; }
+.scan-dialog-content { padding: 24px; }
+.scan-dialog-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--ops-line); }
+.scan-dialog-header h2 { margin-top: 4px; font-size: 1.25rem; font-weight: 600; }
+.scan-success-label { color: var(--color-emerald-400); font-size: .8rem; font-weight: 500; }
+.scan-dialog-header .ops-icon-button { font-size: 1.5rem; flex-shrink: 0; }
+.scan-history-count { display: inline-block; margin-left: 8px; padding: 4px 8px; font-size: .75rem; color: var(--ops-muted); border: 1px solid var(--ops-line); border-radius: 4px; vertical-align: middle; font-weight: 400; }
+.scan-history-empty { padding: 32px 16px; text-align: center; color: var(--ops-muted); font-size: .875rem; }
+.scan-history-scroll { overflow-x: auto; }
+#asset-scanner { grid-template-columns: minmax(0, 1fr); }
+#asset-scanner > section:first-child { width: 100%; max-width: 840px; justify-self: center; }
+#asset-scanner .scanner-preview { aspect-ratio: 16 / 9; max-height: 420px; }
+.scan-history-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .8125rem; }
+.scan-history-table th { padding: 12px 8px; color: var(--ops-muted); font-size: .75rem; font-weight: 500; white-space: nowrap; }
+.scan-history-table td { padding: 16px 8px; border-top: 1px solid var(--ops-line); overflow-wrap: anywhere; }
+.scan-history-table td:nth-child(2) { font-weight: 600; }
+.scan-history-open { color: var(--ops-accent); cursor: pointer; min-height: 32px; white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
+.asset-action-panel { margin-bottom: 24px; padding: 24px; }
+.asset-action-panel h2 { font-size: .8rem; font-weight: 600; margin-bottom: 16px; }
+.asset-action-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.asset-action-grid > :is(a,button) { display: flex; align-items: center; justify-content: start; gap: 8px; min-height: 48px; padding: 12px; border: 1px solid var(--ops-line); border-radius: var(--ops-radius); font-size: .8125rem; font-weight: 500; color: var(--ops-text); cursor: pointer; text-align: left; }
+.asset-action-grid > :is(a,button):hover { background: var(--ops-page); border-color: var(--ops-accent); }
+.asset-action-grid svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--ops-accent); }
+.asset-request-state { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--ops-line); font-size: .8125rem; color: var(--ops-muted); }
+.asset-request-state summary { cursor: pointer; color: var(--ops-text); font-weight: 500; }
+.asset-request-state summary, .rfid-manual-entry summary { list-style: none; display: flex; align-items: center; gap: 8px; }
+.asset-request-state summary::-webkit-details-marker, .rfid-manual-entry summary::-webkit-details-marker { display: none; }
+.asset-request-state summary::before, .rfid-manual-entry summary::before { content: ''; flex: 0 0 16px; height: 16px; background: currentColor; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='m9 5 7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat; }
+.asset-request-state[open] summary::before, .rfid-manual-entry[open] summary::before { transform: rotate(90deg); }
+#asset-rfid-state, #replacement-status, #riwayat-timeline { scroll-margin-top: 96px; }
+.asset-request-state p { margin-top: 8px; overflow-wrap: anywhere; }
+.asset-side-column { display: grid; gap: 24px; align-content: start; min-width: 0; }
+.asset-qr-card, .asset-timeline-card { padding: 24px; min-width: 0; }
+.asset-qr-card h2, .asset-timeline-card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+.asset-qr-image { display: block; width: min(192px, 100%); height: auto; margin: 0 auto 16px; padding: 16px; background: #ffffff; border-radius: 4px; }
+.asset-qr-code { display: block; text-align: center; font-size: .8125rem; font-family: monospace; margin-bottom: 16px; color: var(--ops-muted); overflow-wrap: anywhere; }
+.asset-qr-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.asset-qr-actions a { min-width: 0; }
+.asset-timeline-filter { display: grid; gap: 8px; margin-bottom: 24px; color: var(--ops-muted); font-size: .8125rem; }
+.asset-timeline-filter select { width: 100%; padding: 8px 12px; min-height: 40px; border: 1px solid var(--ops-line); border-radius: 4px; background: var(--ops-panel); color: var(--ops-text); }
+.asset-timeline-filter select { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d8795' stroke-width='1.8'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: right 12px center; background-size: 16px; background-repeat: no-repeat; }
+.asset-timeline-card .history-item { text-align: left; overflow-wrap: anywhere; }
+.asset-timeline-card ul { margin-bottom: 0; }
+.asset-timeline-card .history-item:last-child { padding-bottom: 0; }
+.asset-status-write-off { color: #334155 !important; background: #e2e8f0 !important; border-color: #94a3b8 !important; }
+[data-theme="dark"] .asset-status-write-off { color: #f1f5f9 !important; background: #1e293b !important; border-color: #64748b !important; }
+.asset-status-write-off > span { background: currentColor; }
+.rfid-live-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.rfid-live-header h2 { font-size: 1rem; font-weight: 600; }
+.rfid-live-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--ops-line); border-radius: 4px; color: var(--ops-muted); font-size: .75rem; }
+.rfid-live-badge i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.rfid-live-badge[data-state="ready"] { color: var(--color-emerald-400); }
+.rfid-live-badge[data-state="ready"] i { animation: reader-waiting 1.8s ease-in-out infinite; }
+.rfid-live-badge:is([data-state="warning"],[data-state="error"]) { color: var(--color-amber-400); }
+.rfid-live-state { display: grid; justify-items: center; gap: 12px; padding: 32px 16px; text-align: center; }
+.rfid-reader-symbol { display: grid; place-items: center; width: 88px; height: 88px; border: 1px solid var(--ops-line); border-radius: 50%; color: var(--ops-muted); }
+.rfid-reader-symbol svg { width: 56px; height: 56px; }
+.rfid-live-state[data-state="ready"] .rfid-reader-symbol, .rfid-live-state[data-state="success"] .rfid-reader-symbol { color: var(--color-emerald-400); border-color: currentColor; }
+.rfid-live-state[data-state="error"] .rfid-reader-symbol { color: var(--color-rose-400); }
+.rfid-live-state[data-state="validating"] .rfid-reader-symbol { color: var(--ops-accent); animation: reader-waiting 1s ease-in-out infinite; }
+.rfid-live-state strong { font-size: 1.25rem; font-weight: 600; }
+.rfid-live-state p { max-width: 40ch; color: var(--ops-muted); font-size: .875rem; line-height: 1.5; }
+.rfid-last-read { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--ops-line); border-radius: var(--ops-radius); background: var(--ops-page); }
+.rfid-last-read span, .rfid-last-read time { font-size: .75rem; color: var(--ops-muted); }
+.rfid-last-read output { font-size: 1.25rem; font-family: monospace; font-weight: 500; overflow-wrap: anywhere; }
+.rfid-reader-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--ops-line); font-size: .8125rem; }
+.rfid-reader-meta dt { color: var(--ops-muted); margin-bottom: 4px; }
+.rfid-reader-meta dd { font-weight: 500; }
+.rfid-manual-entry { padding: 16px 0; font-size: .8125rem; }
+.rfid-manual-entry summary { cursor: pointer; color: var(--ops-accent); }
+.rfid-manual-entry .ops-form { margin-top: 16px; }
+.rfid-history-link { display: flex; justify-content: space-between; gap: 16px; padding-top: 16px; border-top: 1px solid var(--ops-line); color: var(--ops-accent); font-size: .8125rem; }
+@keyframes reader-waiting { 50% { opacity: .45; } }
+@media (min-width: 1200px) { .asset-action-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 599px) {
+    .ops-notifications { inset: auto 16px max(16px, env(safe-area-inset-bottom)) 16px; width: auto; }
+    .scan-dialog-content, .asset-action-panel, .asset-qr-card, .asset-timeline-card { padding: 16px; }
+    .asset-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .scan-history-table, .scan-history-table tbody { display: block; }
+    .scan-history-table thead { display: none; }
+    .scan-history-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 16px; padding: 16px 0; border-top: 1px solid var(--ops-line); }
+    .scan-history-table td { display: grid; gap: 4px; padding: 0; border: 0; }
+    .scan-history-table td::before { content: attr(data-label); color: var(--ops-muted); font-size: .75rem; font-weight: 400; }
+    .scan-history-open { text-align: left; }
+}
+
 .scanner-workspace { display: grid; gap: 16px; align-items: start; }
 .scanner-panel { min-width: 0; padding: clamp(16px, 2.5vw, 24px); }
 .scanner-panel-heading { display: flex; gap: 16px; justify-content: space-between; margin-bottom: 16px; }
@@ -555,5 +655,6 @@ a.ops-metric:hover { border-color: #669489; }
     .ops-public-panel .ops-inline-actions > * { flex: 1 1 auto; }
 }
 @media (prefers-reduced-motion: reduce) {
+    .ops-toast, .rfid-reader-symbol, .rfid-live-badge i { animation: none !important; }
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

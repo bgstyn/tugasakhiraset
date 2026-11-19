@@ -5,6 +5,12 @@ export function setText(element, value) {
     if (element.textContent !== value) element.textContent = value;
 }
 
+export function formatStatus(value) {
+    return ({ standby: 'Standby', digunakan: 'Digunakan', maintenance: 'Dalam perbaikan', rusak: 'Rusak',
+        fraud: 'Hilang / investigasi', write_off: 'Write Off', pending_fraud_approval: 'Menunggu investigasi',
+        pending_write_off_approval: 'Menunggu persetujuan penghapusan' })[value] || value?.replaceAll('_', ' ') || '—';
+}
+
 export function showScanStatus(text, tone = '') {
     setText(status, text);
     status.dataset.tone = tone;
@@ -15,7 +21,7 @@ export function showResult(asset, detailUrl, message) {
     setText(document.getElementById('scan-asset-name'), asset.name || asset.asset_id);
     const location = [asset.building, asset.floor && 'Lantai ' + asset.floor, asset.room || asset.location]
         .filter(value => value && value !== '-').join(' / ');
-    const values = { ...asset, location, status: asset.status?.replaceAll('_', ' ') };
+    const values = { ...asset, location, status: formatStatus(asset.status) };
     result.querySelectorAll('[data-field]').forEach(field => {
         setText(field, values[field.dataset.field] || '—');
     });

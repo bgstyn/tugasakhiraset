@@ -5,17 +5,6 @@
 
 @section('content')
 
-@if(Auth::check() && $errors->replacement->any())
-    <div class="ops-flash" data-tone="error" role="alert">
-        <strong>Pengajuan penggantian belum terkirim.</strong>
-        <ul>
-            @foreach($errors->replacement->all() as $message)
-                <li>{{ $message }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 @if(!Auth::check())
     <!-- ========================================== -->
     <!-- PUBLIC GUEST VIEW (Scan QR Code Landing) -->
@@ -200,66 +189,33 @@
         </form>
     </div>
 
-    <!-- Staff Actions Board (Requested: Edit Asset, Pair RFID, Lihat Riwayat, Update Status) -->
-    <div class="mb-6 bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-none relative overflow-hidden">
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3.5 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Panel Aksi Staff / Teknisi
-        </h4>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <!-- Edit Asset Button -->
-            <a href="{{ route('assets.edit', $asset->id) }}" class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit Asset
-            </a>
-
-            <!-- Pair RFID Button -->
-            <button type="button" onclick="openPairRfidModal()" class="justify-center px-4 py-3 bg-slate-950 hover:bg-indigo-900 text-indigo-400 hover:text-indigo-300 border border-slate-800 hover:border-indigo-900/40 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m0 14v1m8-9h1M3 12h1m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                </svg>
-                Hubungkan RFID
+    <section class="ops-surface asset-action-panel" aria-labelledby="asset-actions-title">
+        <h2 id="asset-actions-title">Aksi aset</h2>
+        <div class="asset-action-grid">
+            <a href="{{ route('assets.edit', $asset->id) }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16 4 4 4-11 11H5v-4L16 4zM4 8H2v14h14v-2"/></svg>Edit aset</a>
+            <button type="button" data-action="rfid" onclick="{{ $asset->rfid_uid ? "scrollToElement('asset-rfid-state')" : 'openPairRfidModal()' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" d="M5 5a10 10 0 0 0 0 14M9 8a5 5 0 0 0 0 8m6-8a5 5 0 0 1 0 8m4-11a10 10 0 0 1 0 14"/></svg>
+                {{ $asset->rfid_uid ? ($asset->rfid_status === 'aktif' ? 'RFID terhubung' : 'RFID nonaktif') : 'Hubungkan RFID' }}
             </button>
-
-            <!-- Lihat Riwayat Button -->
-            <button type="button" onclick="scrollToElement('riwayat-timeline')" class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Lihat Riwayat
-            </button>
-
-            <!-- Update Status Button -->
-            <button type="button" onclick="scrollToElement('quick-status-update')" class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2" />
-                </svg>
-                Update Status
-            </button>
-
-            <!-- Catat Maintenance Button -->
-            <button type="button" onclick="openManualMaintenanceModal()" class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-cyan-400 hover:text-cyan-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Catat Perbaikan
-            </button>
-
-            <!-- Request Replacement Button -->
-            <button type="button" onclick="openRequestReplacementModal()" @disabled($pendingReplacement) class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-rose-400 hover:text-rose-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                {{ $pendingReplacement ? 'Penggantian menunggu persetujuan' : 'Ajukan Ganti' }}
+            <button type="button" onclick="scrollToElement('riwayat-timeline')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>Lihat riwayat</button>
+            <button type="button" onclick="scrollToElement('quick-status-update')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M4 10a8 8 0 1 0 2-5"/></svg>Update status</button>
+            <button type="button" onclick="openManualMaintenanceModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14 6 4 4m-5 3-8 8-3-3 8-8a6 6 0 0 1 8-8l-4 4 4 4 4-4a6 6 0 0 1-9 7z"/></svg>Catat perbaikan</button>
+            <button type="button" data-action="replacement" onclick="{{ $replacementRequest ? "scrollToElement('replacement-status')" : 'openRequestReplacementModal()' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg>
+                {{ match($replacementRequest?->status) { 'pending' => 'Penggantian menunggu persetujuan', 'approved' => 'Penggantian disetujui', 'rejected' => 'Penggantian ditolak', default => 'Ajukan Ganti' } }}
             </button>
         </div>
-    </div>
+        @if($replacementRequest)
+            <details id="replacement-status" class="asset-request-state">
+                <summary>Pengajuan penggantian #{{ $replacementRequest->id }} · {{ match($replacementRequest->status) { 'pending' => 'Menunggu persetujuan', 'approved' => 'Disetujui', default => 'Ditolak' } }}</summary>
+                <p>{{ $replacementRequest->reason }}</p>
+                <p>Diajukan {{ $replacementRequest->created_at->format('d M Y, H:i') }}</p>
+                @if($replacementRequest->notes)<p>Catatan administrator: {{ $replacementRequest->notes }}</p>@endif
+                @if($replacementRequest->status === 'rejected')
+                    <button type="button" class="ops-button ops-button-secondary" onclick="openRequestReplacementModal()">Ajukan ulang</button>
+                @endif
+            </details>
+        @endif
+    </section>
 
     {{-- ============================================== --}}
     {{-- Bundle Membership Panel --}}
@@ -331,7 +287,7 @@
                                 Hilang / Fraud
                             </span>
                         @elseif($asset->status == 'write_off')
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500 border border-slate-500/25 text-slate-400 shadow-none shadow-slate-500/5">
+                            <span class="asset-status-write-off inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-500 border border-slate-500/25 text-slate-400 shadow-none shadow-slate-500/5">
                                 <span class="w-2 h-2 bg-slate-400 rounded-full mr-2"></span>
                                 Write Off
                             </span>
@@ -382,7 +338,7 @@
                         </strong>
                     </div>
                     <div>
-                        <span class="block text-slate-555 text-xs font-semibold uppercase tracking-wider mb-1">RFID UID & Status</span>
+                        <span id="asset-rfid-state" class="block text-slate-555 text-xs font-semibold uppercase tracking-wider mb-1">RFID UID & Status</span>
                         <div class="flex flex-wrap items-center gap-2 mt-1">
                             @if($asset->rfid_uid)
                                 <strong class="text-slate-200 text-sm font-mono bg-indigo-950 border border-indigo-500/20 px-2.5 py-0.5 rounded inline-block">{{ $asset->rfid_uid }}</strong>
@@ -586,58 +542,28 @@
             @endif
         </div>
 
-        <!-- Right Column: QR Code & Lifecycle History -->
-        <div class="space-y-6">
-            <!-- QR Code Asset Card -->
-            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none text-center flex flex-col items-center justify-center">
-                <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-4 self-start flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    QR Code Asset
-                </h4>
-                <div class="p-4 bg-white rounded-2xl inline-block shadow-inner mb-3">
-                    <img src="{{ $asset->qr_png_url }}" 
-                        alt="QR Code Aset" class="w-36 h-36 mx-auto">
+        <aside class="asset-side-column" aria-label="QR dan riwayat aset">
+            <section class="ops-surface asset-qr-card" aria-labelledby="asset-qr-title">
+                <h2 id="asset-qr-title">QR aset</h2>
+                <img src="{{ $asset->qr_png_url }}" alt="QR aset {{ $asset->asset_id }}" class="asset-qr-image" width="192" height="192">
+                <code class="asset-qr-code">{{ $asset->asset_id }}</code>
+                <div class="asset-qr-actions">
+                    <a class="ops-button ops-button-primary" href="{{ $asset->qr_png_url }}" download="{{ $asset->asset_id }}.png">Unduh PNG</a>
+                    <a class="ops-button ops-button-secondary" href="{{ $asset->qr_svg_url }}" download="{{ $asset->asset_id }}.svg">Unduh SVG</a>
                 </div>
-                <p class="text-xs text-indigo-400 font-bold font-mono mb-4 bg-indigo-950 px-3 py-1 rounded border border-indigo-500/20 inline-block">{{ $asset->asset_id }}</p>
-                
-                <div class="grid grid-cols-2 gap-2.5 w-full">
-                    <a href="{{ $asset->qr_png_url }}" download="{{ $asset->asset_id }}.png"
-                        class="py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-center text-xs font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        PNG
-                    </a>
-                    <a href="{{ $asset->qr_svg_url }}" download="{{ $asset->asset_id }}.svg"
-                        class="py-2 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-350 hover:text-white rounded-xl text-center text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 8a4 4 0 118 0v4h1v-4a5 5 0 00-10 0v4h1V8z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16h16M12 12v4m-3-3l3 3 3-3" />
-                        </svg>
-                        SVG
-                    </a>
-                </div>>
-                </d            <!-- Local Lifecycle Timeline -->
-            <div id="riwayat-timeline" class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 md:p-6 shadow-none transition duration-300">
-                <h4 class="font-bold text-white text-base mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Lini Masa Asset Lifecycle
-                </h4>
+            </section>
 
-                <div class="flex flex-wrap gap-1.5 mb-5 bg-slate-950 p-1 border border-slate-850 rounded-xl">
-                    <button type="button" onclick="filterHistory('all')" id="tab-all" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-indigo-950 text-indigo-300 border border-indigo-500/20 cursor-pointer">Semua</button>
-                    <button type="button" onclick="filterHistory('assignment')" id="tab-assignment" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Assignment</button>
-                    <button type="button" onclick="filterHistory('status')" id="tab-status" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Status</button>
-                    <button type="button" onclick="filterHistory('location')" id="tab-location" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Lokasi</button>
-                    <button type="button" onclick="filterHistory('maintenance')" id="tab-maintenance" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Maintenance</button>
-                    <button type="button" onclick="filterHistory('ticket')" id="tab-ticket" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Tiket</button>
-                    <button type="button" onclick="filterHistory('replacement')" id="tab-replacement" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">Replacement</button>
-                    <button type="button" onclick="filterHistory('rfid')" id="tab-rfid" class="hist-tab px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:text-slate-200 cursor-pointer">RFID</button>
-                </div>
+            <section id="riwayat-timeline" class="ops-surface asset-timeline-card" aria-labelledby="asset-timeline-title">
+                <h2 id="asset-timeline-title">Riwayat aset</h2>
+                <label class="asset-timeline-filter" for="asset-history-filter">Tampilkan aktivitas
+                    <select id="asset-history-filter" onchange="filterHistory(this.value)">
+                        <option value="all">Semua aktivitas</option><option value="assignment">Penugasan</option>
+                        <option value="status">Status</option><option value="location">Lokasi</option>
+                        <option value="maintenance">Perbaikan</option><option value="ticket">Tiket</option>
+                        <option value="replacement">Penggantian</option><option value="rfid">RFID</option>
+                    </select>
+                </label>
+                <p id="asset-history-empty" class="scanner-info" hidden>Belum ada aktivitas pada kategori ini.</p>
 
                 @if($histories->isEmpty())
                     <p class="text-xs text-slate-500 text-center py-6">Belum ada riwayat perubahan.</p>
@@ -758,8 +684,8 @@
                         </ul>
                     </div>
                 @endif
-            </div>
-        </div>
+            </section>
+        </aside>
     </div>
 
     {{-- ============================================== --}}
@@ -1061,6 +987,7 @@
     function scrollToElement(id) {
         const el = document.getElementById(id);
         if (el) {
+            if (el.tagName === 'DETAILS') el.open = true;
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             el.classList.add('ring-2', 'ring-indigo-500/50');
             setTimeout(() => { el.classList.remove('ring-2', 'ring-indigo-500/50'); }, 2000);
@@ -1137,23 +1064,13 @@
 
     // ─── Category Filter for History ───
     function filterHistory(cat) {
-        document.querySelectorAll('.hist-tab').forEach(btn => {
-            btn.classList.remove('bg-indigo-950', 'text-indigo-300', 'border', 'border-indigo-500/20');
-            btn.classList.add('text-slate-400');
-        });
-        const activeBtn = document.getElementById('tab-' + cat);
-        if (activeBtn) {
-            activeBtn.classList.add('bg-indigo-950', 'text-indigo-300', 'border', 'border-indigo-500/20');
-            activeBtn.classList.remove('text-slate-400');
-        }
-        
+        let visible = 0;
         document.querySelectorAll('.history-item').forEach(item => {
-            if (cat === 'all' || item.getAttribute('data-category') === cat) {
-                item.classList.remove('hidden');
-            } else {
-                item.classList.add('hidden');
-            }
+            const show = cat === 'all' || item.dataset.category === cat;
+            item.hidden = !show;
+            if (show) visible++;
         });
+        document.getElementById('asset-history-empty').hidden = visible > 0;
     }
 </script>
 @endif

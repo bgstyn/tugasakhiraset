@@ -1,5 +1,6 @@
 import './bootstrap';
 import './theme';
+import './notifications';
 
 const sidebar = document.getElementById('app-sidebar');
 if (sidebar) import('./navigation');

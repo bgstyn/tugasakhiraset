@@ -11,10 +11,6 @@
         <p>{{ $asset->name }} · {{ $asset->asset_id }}</p>
     </header>
 
-    @if($errors->any())
-        <div class="ops-flash" data-tone="error" role="alert">Periksa kolom yang ditandai sebelum mengirim ulang.</div>
-    @endif
-
     <form action="{{ route('tickets.public.store', $asset->id, false) }}" method="POST" enctype="multipart/form-data" class="ops-form">
         @csrf
         <div class="ops-field">

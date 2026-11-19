@@ -7,6 +7,7 @@
 <div id="asset-scanner" class="scanner-workspace"
      data-frame-url="{{ route('assets.scan.live-frame', [], false) }}"
      data-latest-url="{{ route('assets.scan.latest', [], false) }}"
+     data-history-url="{{ route('assets.scan.history', [], false) }}"
      data-lookup-url="{{ route('assets.scan.lookup', [], false) }}"
      data-detail-url="{{ route('assets.show', ['asset' => 0], false) }}"
      data-opened-at="{{ (int) (microtime(true) * 1000) }}">
@@ -47,16 +48,32 @@
             <div id="reader"></div>
             <p id="browser-camera-error" class="scanner-info" hidden>Kamera browser belum tersedia. Periksa izin kamera atau gunakan Raspberry Pi.</p>
         </div>
+        <p id="scan-status" class="scanner-info" role="status" aria-live="polite">Menunggu scan QR atau RFID.</p>
     </section>
 
-    <section class="ops-surface scanner-panel" aria-labelledby="scanner-result-title">
+    <section class="ops-surface scanner-panel scan-history-panel" aria-labelledby="scan-history-title">
         <div class="scanner-panel-heading">
             <div>
-                <h2 id="scanner-result-title">Hasil scan</h2>
-                <p id="scan-status" class="scanner-info" role="status" aria-live="polite">Menunggu scan QR atau RFID.</p>
+                <h2 id="scan-history-title">Riwayat cek aset <span id="scan-history-count" class="scan-history-count">0 / 100</span></h2>
+                <p id="scan-history-connection">100 hasil terbaru disimpan di server. Hasil paling lama dihapus otomatis.</p>
             </div>
         </div>
-        @include('assets.partials.scan-result')
+        <p id="scan-history-empty" class="scan-history-empty">Belum ada hasil cek. Scan QR atau RFID untuk memulai.</p>
+        <div class="scan-history-scroll">
+            <table id="scan-history-table" class="scan-history-table" hidden>
+                <thead><tr><th>Waktu</th><th>Aset</th><th>Kode aset</th><th>Metode</th><th>Status</th><th>Hasil</th></tr></thead>
+                <tbody id="scan-history-body"></tbody>
+            </table>
+        </div>
     </section>
 </div>
+<dialog id="scan-result-dialog" class="scan-result-dialog" aria-labelledby="scan-dialog-title">
+    <div class="scan-dialog-content">
+        <header class="scan-dialog-header">
+            <div><span class="scan-success-label">Pemeriksaan berhasil</span><h2 id="scan-dialog-title">Aset ditemukan</h2></div>
+            <button type="button" id="scan-dialog-close" class="ops-icon-button" aria-label="Tutup hasil cek">×</button>
+        </header>
+        @include('assets.partials.scan-result')
+    </div>
+</dialog>
 @endsection

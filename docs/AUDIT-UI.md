@@ -105,3 +105,70 @@ Tidak ada migrasi, endpoint API Pi, atau konfigurasi rahasia yang berubah.
 Instalasi mengikuti deployment biasa. Rollback mengembalikan perubahan controller
 dan Blade pada commit ini; jangan menghapus pengajuan yang sudah tersimpan atau
 menjalankan rollback database. Pengajuan lama yang valid tetap kompatibel.
+
+## Toast, hasil cek, dan status perangkat — 19 November 2026
+
+Pesan sesi login, logout, sukses, informasi, dan gagal memakai satu partial
+`partials/notifications.blade.php` serta `notifications.js`. Toast hilang setelah
+5 detik (8 detik untuk error), dapat ditutup, dan menunda timer ketika pointer
+atau fokus keyboard berada di dalamnya. Toast lama dibuang saat meninggalkan
+halaman agar tidak muncul kembali lewat back/forward cache. Pesan duplikat pada
+halaman approval/bundle dihapus; error pada kolom formulir tetap tersedia.
+
+Halaman **Cek aset** memakai dialog hasil sukses dengan fokus keyboard, Escape,
+tombol tutup, dan tombol scan lagi. QR numerik lama juga diperiksa melalui lookup
+sehingga hasilnya tidak langsung memindahkan halaman. Riwayat dibagikan ke staf
+login, tersimpan di server, dan dibatasi **100 hasil sukses terbaru secara global**.
+QR browser dan scan QR/RFID dari API Pi masuk ke riwayat; pairing dan kegagalan
+validasi tidak dihitung. Memuat ulang halaman hanya memuat daftar, bukan membuka
+ulang popup untuk hasil lama. Membuka hasil dari daftar tidak menambah entri.
+
+Migrasi baru `2026_11_19_000001_create_asset_scan_checks_table.php` menambahkan
+`asset_scan_checks` (snapshot hasil) dan `asset_scan_check_guard` (satu baris untuk
+mengunci proses insert/retensi antar-request). `ScanCheckHistory` menyimpan dan
+memangkas hasil dalam transaksi; UUID scan yang sama tidak menambah duplikasi.
+Riwayat ini terpisah dari `asset_histories`, `rfid_event_receipts`, dan antrean
+SQLite Pi; retensi 100 tidak menghapus audit atau receipt idempotensi.
+`GET /assets/scan/history?after_id=N` hanya tersedia bagi staf login dan
+mengembalikan hasil setelah cursor. Respons sukses API Pi tetap kompatibel dengan
+field lama, dengan tambahan field `history`. Program Pi tidak perlu diubah.
+
+Tombol detail aset mengikuti status RFID (belum terhubung/terhubung/nonaktif) dan
+penggantian (baru/pending/disetujui/ditolak). Status penggantian dapat dibuka untuk
+melihat alasan/catatan; pengajuan yang ditolak menyediakan **Ajukan ulang**.
+Tag penutup kartu QR yang rusak diperbaiki, QR dan lini masa dipisah, serta filter
+riwayat menjadi dropdown. Badge Write Off memakai warna khusus di daftar/detail
+aset dan bundle; rasio kontras terukur 8,40:1 pada tema terang dan 13,35:1 pada tema
+hitam. Permukaan tetap memakai warna solid tanpa blur atau gradasi.
+
+Halaman RFID mengutamakan status pembaca, indikator, UID terakhir, waktu diterima,
+dan mode switch. Status siap memerlukan heartbeat Pi online, reader siap, mode Cek,
+dan feed UID tersambung. Respons polling UID yang sukses saja tidak dianggap Pi
+online. Mode Daftar, reader nonaktif/error, Pi offline, serta koneksi server gagal
+dibedakan. UID otomatis diperiksa seperti sebelumnya; input manual berada dalam
+panel yang bisa dibuka dan tetap berfungsi saat Pi offline. Animasi indikator
+mengikuti `prefers-reduced-motion`.
+
+Pemasangan: backup database sesuai prosedur, lalu deploy dan jalankan
+`php artisan migrate --force` sebelum memakai halaman cek baru. Pipeline yang ada
+menjalankan migrasi otomatis. `.env` produksi dan konfigurasi GPIO tidak diubah.
+Preview lokal sudah dicadangkan dan dimigrasikan terpisah dari produksi.
+
+Rollback: kembalikan controller, route, Blade, CSS, dan JS pada revisi ini.
+Tabel riwayat baru dapat dipertahankan untuk upgrade berikutnya. Bila harus
+dihapus, cadangkan riwayat lalu rollback khusus migrasi tersebut setelah memastikan
+tidak ada kode aktif yang membacanya. Jangan menghapus audit aset, receipt RFID,
+atau database antrean Pi.
+
+Tes PHP: `ScanCheckHistoryTest`, `UiFeedbackTest`, dan regresi proyek. Uji browser
+memakai database QA terpisah: timer/pause/tutup toast dan logout, QR file asli ke
+popup, scan RFID, replay UUID, reload daftar 100 entri, fokus keyboard, Escape,
+status tombol, filter riwayat, dua tema dan lebar 320/390/621/1224 px. Kondisi
+heartbeat pada uji UI RFID diintersep hanya di browser; tidak mengirim heartbeat
+palsu ke server. UID QA dikirim lewat endpoint asli dan input manual diperiksa
+tanpa membuat perangkat dianggap online. Hardware fisik tidak diubah pada revisi ini.
+
+Penilaian heuristik komponen baru 9/10 (7 dari 8 diagnostik): hierarki, grayscale,
+ruang antarkelompok, label/nilai, batas lebar teks, kontras, dan lapisan dialog
+sudah ditinjau. Untuk 10/10, sisa jarak pada komponen Blade lama perlu diseragamkan
+sepenuhnya dengan skala komponen baru; penilaian ini bukan sertifikasi aksesibilitas.

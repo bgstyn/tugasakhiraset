@@ -96,23 +96,10 @@
         </header>
 
         <main id="main-content" class="ops-content" tabindex="-1">
-            @foreach(['success', 'error', 'info'] as $type)
-                @if(session($type))
-                    <div class="ops-flash" data-tone="{{ $type }}" role="{{ $type === 'error' ? 'alert' : 'status' }}">
-                        <span>{{ session($type) }}</span>
-                        @if($type === 'success' && session('newly_created_id'))
-                            <div class="ops-inline-actions">
-                                <a href="{{ route('assets.index', ['quick_filter' => 'terbaru', 'highlight_id' => session('newly_created_id')]) }}" class="ops-button ops-button-primary">Lihat aset baru</a>
-                                <a href="{{ route('assets.create') }}" class="ops-button ops-button-secondary">Tambah aset lagi</a>
-                            </div>
-                        @endif
-                    </div>
-                @endif
-            @endforeach
-
             @yield('content')
         </main>
     </div>
+    @include('partials.notifications')
     @yield('scripts')
 </body>
 </html>

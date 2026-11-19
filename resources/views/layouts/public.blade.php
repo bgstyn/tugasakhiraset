@@ -28,16 +28,10 @@
         </div>
     </header>
     <main id="main-content" class="ops-public-content" tabindex="-1">
-        @foreach(['success', 'error', 'info'] as $type)
-            @if(session($type))
-                <div class="ops-flash" data-tone="{{ $type }}" role="{{ $type === 'error' ? 'alert' : 'status' }}">
-                    {{ session($type) }}
-                </div>
-            @endif
-        @endforeach
         @yield('content')
     </main>
     <footer class="ops-public-footer">Jurusan Teknologi Informasi · Politeknik Negeri Padang</footer>
+    @include('partials.notifications')
     @yield('scripts')
 </body>
 </html>

@@ -10,10 +10,6 @@
         <p>Gunakan akun staf atau teknisi.</p>
     </header>
 
-    @if($errors->any())
-        <div class="ops-flash" data-tone="error" role="alert">{{ $errors->first() }}</div>
-    @endif
-
     <form action="{{ route('login') }}" method="POST" class="ops-form" id="loginForm">
         @csrf
         <div class="ops-field">
