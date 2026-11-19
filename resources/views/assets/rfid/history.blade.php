@@ -10,7 +10,7 @@
             <h3 class="text-base md:text-lg font-bold text-white">Log Aktivitas RFID</h3>
             <p class="text-xs text-slate-400 mt-1">Daftar lengkap audit log aktivitas penambahan, pergantian, pembaruan status, dan penghapusan RFID pada aset.</p>
         </div>
-        <a href="{{ route('assets.rfid.validate') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer w-fit">
+        <a href="{{ route('assets.scan', ['mode' => 'rfid']) }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-none shadow-indigo-600/10 hover:shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer w-fit">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>

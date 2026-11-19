@@ -172,3 +172,30 @@ Penilaian heuristik komponen baru 9/10 (7 dari 8 diagnostik): hierarki, grayscal
 ruang antarkelompok, label/nilai, batas lebar teks, kontras, dan lapisan dialog
 sudah ditinjau. Untuk 10/10, sisa jarak pada komponen Blade lama perlu diseragamkan
 sepenuhnya dengan skala komponen baru; penilaian ini bukan sertifikasi aksesibilitas.
+
+## Penyatuan menu cek dan pematian sementara Paket aset
+
+Menu sidebar **Cek aset** menjadi satu pintu untuk QR/kamera dan RFID. Pilihan
+metode menggunakan tab pada `/assets/scan` dan `/assets/scan?mode=rfid`.
+Halaman RFID memakai satu panel, tanpa judul tambahan **Pembaca RFID** atau kartu
+hasil kosong. Hasil baru muncul di bawah UID setelah pemeriksaan, dengan rincian
+ringkas tanpa mengulang UID. Reset menyembunyikan rincian kembali. Indikator Pi,
+input manual, dan penerimaan UID otomatis tetap berfungsi.
+
+URL lama `/assets/rfid/validate` mengalihkan navigasi HTML ke tab RFID. Permintaan
+JSON pada URL lama tetap mengembalikan validasi seperti sebelumnya sehingga tidak
+memutus klien yang sudah dipakai.
+
+`config/features.php` menyediakan `features.asset_bundles`, default false melalui
+`FEATURE_ASSET_BUNDLES`. Saat false, menu dan informasi keanggotaan paket disembunyikan;
+middleware `EnsureAssetBundlesEnabled` menolak seluruh akses CRUD paket dengan 404.
+Controller, model, view, route, tabel, dan data paket tetap disimpan. Untuk mengaktifkan
+kembali, set `FEATURE_ASSET_BUNDLES=true` pada konfigurasi lingkungan yang berlaku
+dan bangun ulang config cache. Tidak ada migrasi atau penghapusan data.
+
+`CheckWorkspaceTest` memeriksa menu tunggal, kedua mode, redirect lama, kompatibilitas
+JSON, penolakan CRUD saat paket dimatikan, dan akses kembali ke data lama ketika
+fitur diaktifkan. Uji browser memeriksa satu panel RFID, hasil otomatis/manual,
+reset, perpindahan tab, serta ukuran 320/390/621/1224 px pada kedua tema.
+Rollback dilakukan dengan mengembalikan perubahan route/controller/Blade/JS/CSS dan
+feature flag terkait; tidak memerlukan rollback database.

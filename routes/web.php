@@ -83,7 +83,8 @@ Route::middleware(['auth', 'staff.session'])->group(function () {
     Route::resource('locations', LocationController::class);
 
     // Asset Bundle CRUD
-    Route::resource('bundles', AssetBundleController::class);
+    Route::resource('bundles', AssetBundleController::class)
+        ->middleware(\App\Http\Middleware\EnsureAssetBundlesEnabled::class);
 
     // Approval Submission (all authenticated staff)
     Route::post('/approvals', [AssetApprovalController::class, 'store'])->name('approvals.store');

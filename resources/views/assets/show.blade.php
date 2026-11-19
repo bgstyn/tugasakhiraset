@@ -118,7 +118,7 @@
                     <span class="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">User Saat Ini</span>
                     <strong class="text-slate-200 text-base font-semibold">{{ $asset->current_user ?? 'Belum Ditugaskan (Standby)' }}</strong>
                 </div>
-                @if($asset->bundles->count() > 0)
+                @if(config('features.asset_bundles') && $asset->bundles->count() > 0)
                 <div class="sm:col-span-2">
                     <span class="block text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Paket Asset (Bundle)</span>
                     <div class="flex flex-wrap gap-2 mt-1">
@@ -220,7 +220,7 @@
     {{-- ============================================== --}}
     {{-- Bundle Membership Panel --}}
     {{-- ============================================== --}}
-    @if($asset->bundles->count() > 0)
+    @if(config('features.asset_bundles') && $asset->bundles->count() > 0)
     <div class="mb-6 bg-indigo-950 border border-indigo-900/30 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="flex items-center gap-2.5 shrink-0">
             <div class="w-9 h-9 rounded-xl bg-indigo-950 border border-indigo-500/25 flex items-center justify-center">

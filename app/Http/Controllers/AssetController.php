@@ -325,9 +325,9 @@ class AssetController extends Controller
     /**
      * Show QR Code camera scanner page.
      */
-    public function scan()
+    public function scan(Request $request)
     {
-        return view('assets.scan');
+        return view($request->query('mode') === 'rfid' ? 'assets.rfid.validate' : 'assets.scan');
     }
 
     /**
@@ -640,6 +640,6 @@ class AssetController extends Controller
             ]);
         }
 
-        return view('assets.rfid.validate');
+        return redirect()->route('assets.scan', ['mode' => 'rfid']);
     }
 }

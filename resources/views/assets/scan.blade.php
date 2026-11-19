@@ -4,6 +4,7 @@
 @section('page_title', 'Cek aset')
 
 @section('content')
+@include('assets.partials.check-modes')
 <div id="asset-scanner" class="scanner-workspace"
      data-frame-url="{{ route('assets.scan.live-frame', [], false) }}"
      data-latest-url="{{ route('assets.scan.latest', [], false) }}"

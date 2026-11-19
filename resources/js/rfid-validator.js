@@ -97,6 +97,8 @@ async function validateUid(origin = 'manual') {
     lookup = request;
 
     result.hidden = true;
+    document.getElementById('rfid-inline-result').hidden = false;
+    document.getElementById('scan-status').hidden = false;
     submit.disabled = true;
     showScanStatus('Memeriksa UID…');
     setPhase({ state: 'validating', title: 'Memeriksa UID…', message: origin === 'manual' ? 'Pemeriksaan UID manual melalui server.' : 'UID diterima. Memeriksa data aset…' });
@@ -134,9 +136,12 @@ document.getElementById('scan-reset').addEventListener('click', () => {
     submit.disabled = false;
     result.hidden = true;
     input.value = '';
+    document.getElementById('rfid-inline-result').hidden = true;
     setPhase(null);
     showScanStatus('Menunggu kartu RFID.');
-    input.focus();
+    document.getElementById('scan-status').hidden = true;
+    if (input.closest('details').open) input.focus();
+    else document.getElementById('rfid-live-title').focus();
 });
 
 submit.textContent = 'Periksa RFID';
