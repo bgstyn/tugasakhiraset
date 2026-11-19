@@ -75,12 +75,17 @@ trap - EXIT
 sudo -u www-data test -w storage/app/public/tickets
 test "$(readlink -f public/storage)" = "$(readlink -f storage/app/public)"
 
-echo '[upload] Inspect active web-server upload configuration'
+echo '[upload] Configure upload limits for this application'
 if systemctl is-active --quiet nginx; then
-    sudo nginx -T 2>&1 | awk '/^# configuration file / || /^[[:space:]]*(listen |server_name |root |client_max_body_size |fastcgi_pass |include |location )/ { print }'
-fi
-if [ -f "/etc/php/${PHP_SERIES}/fpm/php.ini" ]; then
-    awk '/^[[:space:]]*(upload_max_filesize|post_max_size)[[:space:]]*=/ { print }' "/etc/php/${PHP_SERIES}/fpm/php.ini"
+    app_hostname=$(php -r '
+        require "vendor/autoload.php";
+        $app = require "bootstrap/app.php";
+        $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        echo parse_url(config("app.url"), PHP_URL_HOST);
+    ')
+    sudo python3 scripts/configure-upload-limits.py \
+        --site /etc/nginx/sites-enabled/asset_management \
+        --public-root "$APP_PATH/public" --hostname "$app_hostname"
 fi
 
 echo '[7/7] Reload web server'
