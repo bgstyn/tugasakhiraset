@@ -243,6 +243,7 @@ class Indicator:
         self.stop = threading.Event()
         self._condition = threading.Condition(threading.RLock())
         self._deadline = None
+        self._idle_color = None
         self._closed = False
         self._lcd_address = config.lcd_address
         self.lcd_attempted = threading.Event()
@@ -283,7 +284,7 @@ class Indicator:
         LOG.info('LCD: %-16s | %s', *current)
 
     def _set_color_locked(self, name):
-        selected = {'success': 'green', 'failure': 'red', 'offline': 'blue'}.get(name)
+        selected = {'success': 'green', 'failure': 'red', 'offline': 'blue', 'standby': 'blue'}.get(name)
         for channel, led in self.led.items():
             if channel != selected:
                 led.off()
@@ -294,8 +295,17 @@ class Indicator:
         with self._condition:
             if self._closed:
                 return
-            self._set_color_locked(name)
+            self._set_color_locked(name if name is not None else self._idle_color)
             self._deadline = time.monotonic() + seconds if name and seconds is not None else None
+            self._condition.notify_all()
+
+    def set_idle_color(self, name):
+        with self._condition:
+            if self._closed:
+                return
+            self._idle_color = name
+            if self._deadline is None:
+                self._set_color_locked(name)
             self._condition.notify_all()
 
     def _led_loop(self):
@@ -306,7 +316,7 @@ class Indicator:
                 if self._deadline is not None:
                     delay = max(0, min(delay, self._deadline - time.monotonic()))
                     if delay == 0:
-                        self._set_color_locked(None)
+                        self._set_color_locked(self._idle_color)
                         self._deadline = None
                         delay = .1
                 self._condition.wait(delay)

@@ -2,6 +2,8 @@
 
 Perbaikan ini mempertahankan wiring dan endpoint yang digunakan Pi. GPIO tetap diambil dari `.env`; tidak ada perubahan nomor pin, polaritas fisik, format UID, atau isi database produksi.
 
+Pembaruan 19 November: standby kini biru, dan mode Daftar memperoleh beep penerimaan serta lookup status tag. Lihat [pemeriksaan awal dan umpan balik](RASPI-STARTUP-FEEDBACK.md) untuk perilaku terbaru, pengujian, instalasi dan rollback. Catatan timer LED di bawah tetap berlaku; target setelah deadline kini kembali ke warna idle yang ditentukan controller.
+
 ## Perubahan dan perilaku
 
 | Bagian | Perbaikan |

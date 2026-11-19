@@ -45,6 +45,7 @@ class Config:
     scan_max_age_seconds: float = float(os.getenv('SCAN_MAX_AGE_SECONDS', '5'))
     worker_stall_seconds: float = float(os.getenv('WORKER_STALL_SECONDS', '30'))
     shutdown_timeout_seconds: float = float(os.getenv('SHUTDOWN_TIMEOUT_SECONDS', '8'))
+    startup_check_seconds: float = float(os.getenv('STARTUP_CHECK_SECONDS', '8'))
     simulate: bool = _bool('SIMULATE', False)
 
     def validate(self):
@@ -67,6 +68,7 @@ class Config:
             ('SCAN_MAX_AGE_SECONDS', self.scan_max_age_seconds, .1, 30),
             ('WORKER_STALL_SECONDS', self.worker_stall_seconds, 15, 120),
             ('SHUTDOWN_TIMEOUT_SECONDS', self.shutdown_timeout_seconds, 1, 20),
+            ('STARTUP_CHECK_SECONDS', self.startup_check_seconds, 1, 15),
         ):
             if not math.isfinite(value) or not minimum <= value <= maximum:
                 raise ValueError(f'{name} harus antara {minimum} dan {maximum}')

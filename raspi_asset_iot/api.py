@@ -1,5 +1,6 @@
 """Laravel API integration for scanner events and live camera frames."""
 import logging
+import queue
 import threading
 import time
 import uuid
@@ -48,6 +49,8 @@ class ApiClient:
             data = body.get('data')
             if isinstance(data, dict) and data.get('asset_id'):
                 title = 'DAFTAR BERHASIL' if registration else 'ASET TERDAFTAR'
+                if registration and data.get('already_registered') is True:
+                    title = 'RFID TERDAFTAR'
                 return Result('confirmed', title, str(data['asset_id']), status)
             return Result('retry', 'API ERROR', 'Respons API tidak memuat ID aset', status)
         if status in (400, 404, 409, 422) and not body['success']:
@@ -56,12 +59,71 @@ class ApiClient:
                 title = 'ASET TIDAK ADA' if registration else 'BELUM TERDAFTAR'
             if body.get('code') == 'RFID_INACTIVE':
                 title = 'RFID NONAKTIF'
+            if registration and body.get('code') == 'RFID_ALREADY_PAIRED':
+                return Result('rejected', 'RFID TERDAFTAR', 'KE ASET LAIN', status)
+            if registration and body.get('code') == 'ASSET_ALREADY_PAIRED':
+                return Result('rejected', 'ASET ADA RFID', 'CEK RFID DI WEB', status)
             message = body.get('message') or 'Validasi gagal'
             return Result('rejected', title, str(message), status)
         return Result('retry', 'API ERROR', f'Respons API tidak diharapkan (HTTP {status})', status)
 
+    def lookup_rfid(self, uid):
+        """Read metadata only; a missing tag is a normal registration state."""
+        try:
+            response = self.session.get(
+                self.base_url + '/rfid/asset', params={'rfid_uid': uid},
+                timeout=min(self.timeout, 2), allow_redirects=False,
+            )
+            body = response.json()
+        except (requests.RequestException, ValueError):
+            return Result('retry', 'STATUS TAK DIKET.', 'CEK KONEKSI API')
+        if isinstance(body, dict):
+            if response.status_code == 404 and body.get('success') is False:
+                return Result('missing', 'BELUM TERDAFTAR', 'SCAN QR CODE', 404)
+            data = body.get('data')
+            if response.status_code == 200 and body.get('success') is True and isinstance(data, dict) and data.get('asset_id') and data.get('rfid_uid') == uid:
+                active = data.get('rfid_status') == 'aktif'
+                return Result('confirmed' if active else 'rejected', 'RFID TERDAFTAR' if active else 'RFID NONAKTIF', str(data['asset_id']), 200)
+        return Result('retry', 'STATUS TAK DIKET.', f'CEK API HTTP {response.status_code}', response.status_code)
+
     def close(self):
         self.session.close()
+
+
+class RegistrationLookup(Worker):
+    """Latest-only lookup, isolated from durable delivery and sensor threads."""
+
+    def __init__(self, api, stop, events):
+        super().__init__(daemon=True, name='registration-lookup')
+        self.api, self.stop, self.events = api, stop, events
+        self.requests = deque(maxlen=1)
+        self.ready = threading.Event()
+
+    def submit(self, context, uid):
+        self.requests.append((context, uid))
+        self.ready.set()
+
+    def run(self):
+        try:
+            while not self.stop.is_set():
+                self.touch()
+                self.ready.wait(.1)
+                self.ready.clear()
+                try:
+                    context, uid = self.requests.pop()
+                except IndexError:
+                    continue
+                if self.stop.is_set():
+                    break
+                result = self.api.lookup_rfid(uid)
+                while not self.stop.is_set():
+                    try:
+                        self.events.put(('registration_status', (context, result)), timeout=.1)
+                        break
+                    except queue.Full:
+                        continue
+        finally:
+            self.api.close()
 
 
 class FrameUploader(Worker):

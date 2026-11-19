@@ -4,11 +4,13 @@ Program Python **headless** untuk **Raspberry Pi 5 / Raspberry Pi OS Trixie 64-b
 
 Perbaikan race condition, pasangan yang gagal disimpan, indikator independen, pemeriksaan RC522, retensi, dan shutdown didokumentasikan di [audit keandalan scanner](../docs/AUDIT-RASPI-RELIABILITY.md), termasuk backup, penerapan, rollback, dan pengujian hardware.
 
+Pembaruan pemeriksaan komponen saat service mulai, **standby biru**, beep scan dan status tag mode Daftar tersedia di [panduan startup dan umpan balik](../docs/RASPI-STARTUP-FEEDBACK.md). Perubahan aturan timeout 90 detik ditunda; alur pemasangan tetap sama.
+
 ## Fitur
 
 - **Mode CEK** (switch posisi kiri): QR lewat USB webcam atau RFID UID lewat RC522, validasi ke `POST /api/rfid-scan`. LCD menyatakan **ASET TERDAFTAR** / **BELUM TERDAFTAR** hanya berdasarkan respons API yang benar.
 - **Mode DAFTAR** (switch posisi kanan): scan QR aset dan RFID UID **dalam urutan bebas**; setelah keduanya lengkap kirim otomatis ke `POST /api/rfid/register`. Ini memasangkan UID pada **aset yang telah ada**, bukan membuat master data aset baru.
-- LCD 16×2 PCF8574 I2C (alamat default `0x27`) menampilkan mode, proses, hasil, dan antrean. LED hijau menandakan sukses, merah menandakan kegagalan scan atau validasi, dan biru menandakan kegagalan komunikasi server.
+- LCD 16×2 PCF8574 I2C (alamat default `0x27`) menampilkan mode, proses, hasil, dan antrean. LED hijau menandakan sukses, merah menandakan kegagalan scan atau validasi, dan biru untuk standby atau kegagalan komunikasi server (dibedakan pesan LCD dan dua beep). Semua output mati saat program berhenti.
 - SQLite menyimpan scan dengan UUID sebelum dikirim. Saat jaringan kembali, pengirim mengirim ulang UUID yang sama dengan jeda 5 detik hingga 5 menit. Laravel versi baru menyimpan hasil berdasarkan UUID agar respons yang hilang tidak mengulang perubahan aset atau riwayat.
 - Scanner tidak memerlukan GUI dan dapat berjalan saat boot via `systemd`.
 - Webcam yang sama dipakai untuk membaca QR dan mengirim JPEG terbaru ke Laravel. Buka **Scan aset → Raspberry Pi** di website melalui HTTPS. Pratinjau menargetkan 5 FPS dan lebar JPEG maksimal 480 piksel. Pembacaan QR tetap memakai frame asli. Pada koneksi unggah yang lambat, coba `CAMERA_STREAM_FPS=3` dan restart service. `CAMERA_STREAM_ENABLED=false` hanya mematikan upload gambar.

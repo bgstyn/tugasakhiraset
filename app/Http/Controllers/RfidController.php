@@ -243,9 +243,11 @@ class RfidController extends Controller
             (filled($asset->rfid_uid) && $asset->rfid_uid !== $rfidUid)
             || Asset::where('rfid_uid', $rfidUid)->whereKeyNot($asset->id)->exists()
         )) {
-            return response()->json(['success' => false, 'message' => 'RFID atau aset sudah dipasangkan.'], 409);
+            $code = filled($asset->rfid_uid) && $asset->rfid_uid !== $rfidUid ? 'ASSET_ALREADY_PAIRED' : 'RFID_ALREADY_PAIRED';
+            return response()->json(['success' => false, 'code' => $code, 'message' => 'RFID atau aset sudah dipasangkan.'], 409);
         }
 
+        $alreadyRegistered = $asset->rfid_uid === $rfidUid && $asset->rfid_status === 'aktif';
         if ($asset->rfid_uid !== $rfidUid || $asset->rfid_status !== 'aktif') {
             $oldValues = ['rfid_uid' => $asset->rfid_uid, 'rfid_status' => $asset->rfid_status];
             $asset->rfid_uid = $rfidUid;
@@ -278,6 +280,7 @@ class RfidController extends Controller
                 'asset_id' => $asset->asset_id,
                 'rfid_uid' => $asset->rfid_uid,
                 'rfid_status' => $asset->rfid_status,
+                'already_registered' => $alreadyRegistered,
                 'status' => $asset->status,
                 'building' => $asset->building,
                 'floor' => $asset->floor,

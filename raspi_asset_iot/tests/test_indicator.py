@@ -118,8 +118,24 @@ class TestIndicator(unittest.TestCase):
         self.indicator.close()
         before = {name: list(output.transitions) for name, output in self.indicator.led.items()}
         self.indicator.color('success', seconds=1)
+        self.indicator.set_idle_color('standby')
         self.indicator.beep(2)
         self.assertEqual(before, {name: output.transitions for name, output in self.indicator.led.items()})
+
+    def test_standby_returns_blue_after_transient_and_is_off_after_close(self):
+        self.indicator.set_idle_color('standby')
+        self.assertFalse(self.indicator.led['blue'].level)
+        self.indicator.color('failure', seconds=.06)
+        self.assertFalse(self.indicator.led['red'].level)
+        blue = self.indicator.led['blue']
+        with blue.changed:
+            self.assertTrue(blue.changed.wait_for(lambda: not blue.level, timeout=1))
+        self.assertTrue(self.indicator.led['red'].level)
+        self.assertTrue(self.indicator.led['green'].level)
+        self.indicator.color(None)
+        self.assertFalse(blue.level)
+        self.indicator.close()
+        self.assertTrue(all(led.level for led in self.indicator.led.values()))
 
     def test_missing_lcd_does_not_disable_led_feedback(self):
         config = Config(led_enabled=True, buzzer_enabled=False, lcd_enabled=True, led_type='common_anode')

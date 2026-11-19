@@ -39,6 +39,8 @@ class ReliabilityTest(unittest.TestCase):
         c.pin_factory = Mock()
         c.switch = Mock(read=Mock(return_value=mode))
         c.reader = c.cam = c.sender = c.frames = c.uid_publisher = c.heartbeat = None
+        c.registration_lookup = None
+        c.lookup_context = c.tag_status = None
         c.show = Mock()
         return c
 
@@ -189,7 +191,8 @@ class ReliabilityTest(unittest.TestCase):
         config = Config(api_base_url='https://example.test/api', api_token='test-token')
         config.validate()
         for values in [dict(http_timeout_seconds=0), dict(pair_timeout_seconds=float('nan')), dict(scan_repeat_seconds=-1),
-                       dict(worker_stall_seconds=2), dict(shutdown_timeout_seconds=2), dict(scan_max_age_seconds=0), dict(success_retention_days=-1)]:
+                       dict(worker_stall_seconds=2), dict(shutdown_timeout_seconds=2), dict(scan_max_age_seconds=0), dict(success_retention_days=-1),
+                       dict(startup_check_seconds=0), dict(startup_check_seconds=float('inf'))]:
             with self.subTest(values=values), self.assertRaises(ValueError):
                 replace(config, **values).validate()
 
@@ -226,13 +229,14 @@ class ReliabilityTest(unittest.TestCase):
         config = Config(api_base_url='https://example.test/api', api_token='token', db_path=str(Path(self.temp.name) / 'integration.db'),
                         led_enabled=True, buzzer_enabled=True, lcd_enabled=True)
         with patch.dict('sys.modules', modules), patch('hardware.ModeSwitch', return_value=switch), patch('hardware.Lcd1602', return_value=lcd), \
-             patch('hardware.WebcamWorker', side_effect=camera), patch('hardware.RfidWorker', side_effect=reader), patch('app.ApiClient', side_effect=api_factory):
+             patch('hardware.WebcamWorker', side_effect=camera), patch('hardware.RfidWorker', side_effect=reader), patch('app.ApiClient', side_effect=api_factory), \
+             patch.object(Controller, 'startup_check'):
             c = Controller(config, stop)
             feedback_seen = threading.Event()
             def finish_after_feedback():
                 deadline = time.monotonic() + 4
                 while time.monotonic() < deadline and not stop.is_set():
-                    if c.indicator.buzzer.transitions == [True, False] and not c.indicator.led['green'].level:
+                    if c.indicator.buzzer.transitions == [True, False] * 2 and not c.indicator.led['green'].level:
                         feedback_seen.set()
                         break
                     stop.wait(.01)

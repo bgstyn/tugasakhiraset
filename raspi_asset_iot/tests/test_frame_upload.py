@@ -47,6 +47,7 @@ class FrameUploadTest(unittest.TestCase):
     def test_register_mode_publishes_uid_before_a_qr_pair_is_complete(self):
         controller = Controller.__new__(Controller)
         controller.uid_publisher = Mock()
+        controller.registration_lookup = None
         controller.mode = 'register'
         controller.config = SimpleNamespace(scan_max_age_seconds=5)
         controller.scan_epoch = ScanEpoch()

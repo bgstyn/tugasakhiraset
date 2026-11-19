@@ -35,7 +35,7 @@ class RfidEventReceiptTest extends TestCase
         $payload = ['asset_id' => $asset->asset_id, 'rfid_uid' => 'AABB0011'];
 
         $first = $this->postJson(route('api.rfid.register'), $payload, $headers);
-        $first->assertOk()->assertJsonPath('data.rfid_uid', 'AABB0011');
+        $first->assertOk()->assertJsonPath('data.rfid_uid', 'AABB0011')->assertJsonPath('data.already_registered', false);
         $this->assertSame('AABB0011', $asset->fresh()->rfid_uid);
         $historyCount = AssetHistory::count();
         $this->assertGreaterThan(0, $historyCount);
@@ -51,7 +51,7 @@ class RfidEventReceiptTest extends TestCase
         $this->postJson(route('api.rfid.register'), ['rfid_uid' => 'AABB0033'] + $payload, $headers)
             ->assertConflict();
         $this->postJson(route('api.rfid.register'), $payload, $this->headers())
-            ->assertConflict();
+            ->assertConflict()->assertJsonPath('code', 'ASSET_ALREADY_PAIRED');
         $this->assertSame('AABB0022', $asset->fresh()->rfid_uid);
     }
 
@@ -62,10 +62,22 @@ class RfidEventReceiptTest extends TestCase
         $this->postJson(route('api.rfid.register'), [
             'asset_id' => $asset->asset_id,
             'rfid_uid' => $asset->rfid_uid,
-        ], $this->headers())->assertOk()->assertJsonPath('data.rfid_uid', $asset->rfid_uid);
+        ], $this->headers())->assertOk()->assertJsonPath('data.rfid_uid', $asset->rfid_uid)->assertJsonPath('data.already_registered', true);
 
         $this->assertDatabaseCount('asset_histories', 0);
         $this->assertDatabaseCount('rfid_event_receipts', 1);
+    }
+
+    public function test_tag_on_another_asset_is_reported_without_changing_either_mapping(): void
+    {
+        $owner = $this->asset(['rfid_uid' => 'AABB0011', 'rfid_status' => 'aktif']);
+        $target = $this->asset(['asset_id' => 'TARGET-002', 'government_inventory_number' => 'TEST-RFID-2']);
+        $this->postJson(route('api.rfid.register'), [
+            'asset_id' => $target->asset_id, 'rfid_uid' => $owner->rfid_uid,
+        ], $this->headers())->assertConflict()->assertJsonPath('code', 'RFID_ALREADY_PAIRED');
+        $this->assertSame('AABB0011', $owner->fresh()->rfid_uid);
+        $this->assertNull($target->fresh()->rfid_uid);
+        $this->assertDatabaseCount('asset_histories', 0);
     }
 
     public function test_replay_of_scan_cannot_overwrite_latest_scan_or_repeat_an_update(): void

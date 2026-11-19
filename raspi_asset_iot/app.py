@@ -14,7 +14,7 @@ import threading
 import time
 from pathlib import Path
 
-from api import ApiClient, FrameUploader, RfidReadPublisher, HeartbeatPublisher
+from api import ApiClient, FrameUploader, RfidReadPublisher, HeartbeatPublisher, RegistrationLookup
 from config import Config
 from core import Outbox, RegistrationPair, ScanEpoch, ScanReading, Worker, normalize_qr
 
@@ -90,6 +90,8 @@ class Controller:
         self.pin_factory = LGPIOFactory()
         self.indicator = self.switch = None
         self.sender = self.cam = self.reader = self.frames = self.uid_publisher = self.heartbeat = None
+        self.registration_lookup = None
+        self.lookup_context = self.tag_status = None
         try:
             self.indicator = Indicator(self.pin_factory, config)
             self.switch = ModeSwitch(self.pin_factory, config.switch_check_gpio, config.switch_register_gpio)
@@ -107,6 +109,8 @@ class Controller:
         if config.rfid_enabled:
             uid_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
             self.uid_publisher = RfidReadPublisher(uid_api, self.stop)
+            lookup_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
+            self.registration_lookup = RegistrationLookup(lookup_api, self.stop, self.events)
         if config.camera_enabled:
             if config.camera_stream_enabled:
                 frame_api = ApiClient(config.api_base_url, config.api_token, config.http_timeout_seconds)
@@ -158,7 +162,7 @@ class Controller:
         if self.pair.asset_id:
             return 'QR OK', 'SCAN RFID'
         if self.pair.uid:
-            return 'RFID OK', 'SCAN QR CODE'
+            return self.tag_status.title if self.tag_status else 'RFID OK', 'SCAN QR CODE'
         if pending:
             return 'MODE DAFTAR', f'ANTREAN: {pending}'
         return 'MODE DAFTAR', 'SCAN QR + RFID'
@@ -169,6 +173,7 @@ class Controller:
             LOG.info('Switch %s -> %s', self.mode, mode)
             self.mode = mode
             self.scan_epoch.advance()
+            self.lookup_context = self.tag_status = None
             if not self.pair.payload:
                 self.pair.reset()  # completed scans survive a temporary storage failure
             self.indicator.color(None)
@@ -205,9 +210,13 @@ class Controller:
                     self.show('DAFTAR TERTUNDA', 'MENUNGGU SIMPAN', seconds=1.8)
                     return
                 pair = self.pair.add(source, val)
+                self.lookup_context = self.tag_status = None
                 if not pair:
                     self.show('QR DITERIMA' if source == 'qr' else 'RFID DITERIMA',
-                              'SCAN RFID' if source == 'qr' else 'SCAN QR CODE', seconds=1.7)
+                              'SCAN RFID' if source == 'qr' else 'CEK STATUS TAG', seconds=1.7, beeps=1)
+                    if source == 'rfid' and self.registration_lookup:
+                        self.lookup_context = (reading.epoch, val, reading.captured_at)
+                        self.registration_lookup.submit(self.lookup_context, val)
                     return
                 self.save_registration()
                 return
@@ -234,6 +243,16 @@ class Controller:
         self.event_epochs[event_id] = self.scan_epoch.snapshot()
         self.show('DAFTAR RFID', pair['asset_id'][:16] if new else 'SUDAH DIANTRI', seconds=1.8)
 
+    def on_registration_status(self, context, result):
+        # Only the still-incomplete pair that requested this lookup owns its LCD.
+        if (self.mode != 'register' or context != self.lookup_context
+                or context[0] != self.scan_epoch.snapshot() or self.pair.uid != context[1]
+                or self.pair.payload or self.pair.expired()):
+            return
+        self.tag_status = result
+        color = {'confirmed': 'success', 'rejected': 'failure', 'retry': 'offline'}.get(result.state)
+        self.show(result.title, result.detail, color, seconds=3, beeps=2 if result.state in ('rejected', 'retry') else 0)
+
     def on_result(self, event, result):
         LOG.info('Hasil event=%s jenis=%s status=%s pesan=%s', event['id'], event['kind'], result.state, result.detail)
         # Avoid a beep for delayed/offline reconnection; no unexpected sounds overnight.
@@ -255,7 +274,41 @@ class Controller:
         self.event_epochs.pop(event['id'], None)
 
     def workers(self):
-        return tuple(w for w in (self.reader, self.cam, self.sender, self.frames, self.uid_publisher, self.heartbeat) if w is not None)
+        return tuple(w for w in (self.reader, self.cam, self.sender, self.frames, self.uid_publisher, self.registration_lookup, self.heartbeat) if w is not None)
+
+    def startup_check(self):
+        """Bounded readiness check after OS boot, before accepting new scans."""
+        self.indicator.display('CEK KOMPONEN', 'MOHON TUNGGU')
+        deadline = time.monotonic() + self.config.startup_check_seconds
+        while not self.stop.is_set():
+            health = self.health_snapshot()
+            lcd_ready = not self.config.lcd_enabled or self.indicator.lcd is not None
+            if lcd_ready and all(health[key] in ('ready', 'disabled') for key in ('camera', 'rfid')):
+                break
+            if time.monotonic() >= deadline:
+                break
+            self.stop.wait(.05)
+        if self.stop.is_set():
+            return
+        health = self.health_snapshot()
+        issues = [key.upper() for key in ('camera', 'rfid') if health[key] == 'error']
+        if self.config.lcd_enabled and self.indicator.lcd is None:
+            issues.append('LCD')
+        if self.switch.read() == 'invalid':
+            issues.append('SWITCH')
+        self.outbox.stats()  # verify SQLite can be read, not just initialized
+        LOG.info('Pemeriksaan awal: kamera=%s RFID=%s LCD=%s switch=%s SQLite=OK',
+                 health['camera'], health['rfid'], 'ready' if self.indicator.lcd is not None else 'disabled' if not self.config.lcd_enabled else 'error', self.switch.read())
+        # Outputs have no feedback sensor: this tests driving them, not their wiring.
+        for color in ('failure', 'success', 'standby'):
+            self.indicator.color(color)
+            if self.stop.wait(.18):
+                return
+        self.scan_epoch.advance()  # discard scans captured during the startup check
+        self.indicator.set_idle_color('standby')
+        self.show('CEK KOMPONEN OK' if not issues else 'KOMPONEN GAGAL',
+                  'SIAP SCAN ASET' if not issues else ','.join(issues),
+                  'success' if not issues else 'failure', seconds=2, beeps=1 if not issues else 2)
 
     def check_workers(self):
         now = time.monotonic()
@@ -270,6 +323,8 @@ class Controller:
         self.sender.start()
         if self.uid_publisher:
             self.uid_publisher.start()
+        if self.registration_lookup:
+            self.registration_lookup.start()
         if self.frames:
             self.frames.start()
         if self.cam:
@@ -277,6 +332,7 @@ class Controller:
         if self.reader:
             self.reader.start()
         self.heartbeat.start()
+        self.startup_check()
         LOG.info('Service siap, koneksi internet tidak diperlukan untuk menerima scan')
         last_idle_draw = 0
         while not self.stop.is_set():
@@ -286,6 +342,7 @@ class Controller:
                 self.save_registration(notify_failure=False)
             if self.mode == 'register' and self.pair.expired():
                 self.pair.reset()
+                self.lookup_context = self.tag_status = None
                 self.show('WAKTU HABIS', 'ULANGI QR+RFID', 'failure', beeps=2)
             try:
                 kind, value = self.events.get(timeout=0.1)
@@ -296,6 +353,8 @@ class Controller:
                 self.on_scan(kind, value)
             elif kind == 'result':
                 self.on_result(*value)
+            elif kind == 'registration_status':
+                self.on_registration_status(*value)
             elif kind == 'scan_error':
                 self.show('QR TIDAK TERBACA', 'COBA DEKATKAN', 'failure', beeps=2)
             elif kind == 'camera_error':
