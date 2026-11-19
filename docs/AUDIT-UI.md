@@ -68,3 +68,40 @@ Header aplikasi dibuat sticky. Chevron sidebar berada di tepi kiri header dan be
 Verifikasi lanjutan lulus pada 48 kombinasi halaman/ukuran layar untuk kedua tema, persistensi setelah navigasi/reload, preferensi sistem, chevron sidebar, dan jarak dropdown. Pemeriksaan akhir memastikan latar hitam murni, header sticky pada desktop/ponsel, serta pemulihan ke mode terang. Build Vite terakhir lulus dengan 91 modul.
 
 Scrollbar sidebar disempurnakan menjadi 3 px pada Chromium, tanpa radius atau tombol panah, dengan thumb abu-abu mengikuti tema dan track sesuai sidebar. Properti scrollbar native dinonaktifkan hanya pada browser yang mendukung pseudo-element WebKit agar ukuran tepat tidak tertimpa; browser lain tetap memakai fallback `thin`. Uji browser memastikan gutter 3 px, radius 0, warna kedua tema, serta fungsi scroll pada menu terbuka dan diciutkan; build lulus.
+
+## Pengajuan penggantian aset — 19 November 2026
+
+Laporan pengguna: **Ajukan Ganti** kembali tanpa feedback dan pengajuan tidak terlihat
+di indikator persetujuan administrator. Reproduksi menemukan dua masalah: alasan
+kurang dari 10 karakter ditolak server tetapi error tidak ditampilkan dalam form,
+dan badge navigasi hanya menghitung tabel `asset_approvals`, padahal penggantian
+disimpan di `replacement_requests`. Query daftar administrator sendiri sudah
+mengambil kedua jenis pengajuan.
+
+`AssetApprovalController::storeReplacement` sekarang memakai error bag `replacement`
+dan pesan validasi bahasa Indonesia. Form di `assets/show.blade.php` menyelaraskan
+batas 10–1000 karakter, mempertahankan input, menampilkan error, dan otomatis
+membuka kembali dialog setelah validasi server gagal. `AssetController::show`
+mengambil pengajuan penggantian yang pending bagi staf login; tombol menampilkan
+**Penggantian menunggu persetujuan** selama pengajuan belum diproses.
+`layouts/layout.blade.php` menghitung kedua tabel untuk badge administrator.
+Pengajuan yang valid tetap disimpan sebagai pending dan muncul di bagian
+**Permohonan Penggantian Aset** pada halaman Persetujuan aset. Pengajuan duplikat
+tetap ditolak dan persetujuan tetap khusus administrator.
+
+Regresi otomatis ada di `tests/Feature/ReplacementRequestTest.php`: pengajuan staf
+hingga daftar admin, hitungan gabungan, error/input form, duplikasi, hak akses,
+dan proses persetujuan hingga riwayat. Jalankan
+`php artisan test --filter=ReplacementRequestTest` atau seluruh suite. Gunakan
+konfigurasi testing SQLite, bukan database produksi.
+
+Verifikasi perbaikan lulus 59 tes Laravel dengan 348 assertion. Uji browser pada
+database QA terpisah memeriksa batas karakter native, penolakan server setelah
+validasi browser dilewati, pesan error, dialog terbuka kembali, input tetap terisi,
+pengiriman ulang pada viewport ponsel, feedback sukses, status pending, daftar
+administrator, dan badge pengajuan. Tidak membuat pengajuan percobaan di produksi.
+
+Tidak ada migrasi, endpoint API Pi, atau konfigurasi rahasia yang berubah.
+Instalasi mengikuti deployment biasa. Rollback mengembalikan perubahan controller
+dan Blade pada commit ini; jangan menghapus pengajuan yang sudah tersimpan atau
+menjalankan rollback database. Pengajuan lama yang valid tetap kompatibel.

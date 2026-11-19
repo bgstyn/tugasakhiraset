@@ -153,9 +153,13 @@ class AssetApprovalController extends Controller
      */
     public function storeReplacement(Request $request, Asset $asset)
     {
-        $validated = $request->validate([
+        $validated = $request->validateWithBag('replacement', [
             'reason' => 'required|string|min:10|max:1000',
             'ticket_id' => 'nullable|exists:maintenance_tickets,id',
+        ], [
+            'reason.required' => 'Isi alasan penggantian aset.',
+            'reason.min' => 'Alasan penggantian minimal 10 karakter.',
+            'reason.max' => 'Alasan penggantian maksimal 1000 karakter.',
         ]);
 
         $user = auth()->user();

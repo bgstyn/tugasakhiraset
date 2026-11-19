@@ -45,7 +45,7 @@
             @include('layouts.nav-links', ['links' => $navigation])
             @if(auth()->user()?->isAdmin())
                 <div class="ops-nav-heading ops-nav-label">Administrasi</div>
-                @include('layouts.nav-links', ['links' => $adminNavigation, 'pendingApprovals' => \App\Models\AssetApproval::where('status', 'pending')->count()])
+                @include('layouts.nav-links', ['links' => $adminNavigation, 'pendingApprovals' => \App\Models\AssetApproval::where('status', 'pending')->count() + \App\Models\ReplacementRequest::where('status', 'pending')->count()])
             @endif
         </nav>
 

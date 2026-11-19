@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\AssetApproval;
 use App\Models\AssetHistory;
+use App\Models\ReplacementRequest;
 use App\Services\AssetQrCode;
 use Illuminate\Http\Request;
 
@@ -180,7 +181,10 @@ class AssetController extends Controller
         $approvals = $asset->approvals()->orderBy('created_at', 'desc')->get();
         // Get bundles this asset belongs to
         $asset->load('bundles.location');
-        return view('assets.show', compact('asset', 'histories', 'approvals'));
+        $pendingReplacement = auth()->check()
+            ? ReplacementRequest::where('asset_id', $asset->id)->where('status', 'pending')->latest()->first()
+            : null;
+        return view('assets.show', compact('asset', 'histories', 'approvals', 'pendingReplacement'));
     }
 
     /**

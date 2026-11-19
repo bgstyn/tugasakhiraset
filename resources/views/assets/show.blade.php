@@ -5,6 +5,17 @@
 
 @section('content')
 
+@if(Auth::check() && $errors->replacement->any())
+    <div class="ops-flash" data-tone="error" role="alert">
+        <strong>Pengajuan penggantian belum terkirim.</strong>
+        <ul>
+            @foreach($errors->replacement->all() as $message)
+                <li>{{ $message }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 @if(!Auth::check())
     <!-- ========================================== -->
     <!-- PUBLIC GUEST VIEW (Scan QR Code Landing) -->
@@ -241,11 +252,11 @@
             </button>
 
             <!-- Request Replacement Button -->
-            <button type="button" onclick="openRequestReplacementModal()" class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-rose-400 hover:text-rose-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
+            <button type="button" onclick="openRequestReplacementModal()" @disabled($pendingReplacement) class="justify-center px-4 py-3 bg-slate-950 hover:bg-slate-800 text-rose-400 hover:text-rose-300 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
-                Ajukan Ganti
+                {{ $pendingReplacement ? 'Penggantian menunggu persetujuan' : 'Ajukan Ganti' }}
             </button>
         </div>
     </div>
@@ -978,13 +989,19 @@
             </h3>
             <p class="text-xs text-slate-400 mb-4">Ajukan penggantian aset ini ke Administrator karena tidak dapat diperbaiki kembali.</p>
             
-            <form action="{{ route('assets.replacement.store', $asset->id) }}" method="POST">
+            <form id="request-replacement-form" action="{{ route('assets.replacement.store', $asset->id) }}" method="POST">
                 @csrf
                 <div class="space-y-4">
                     <div>
                         <label for="replacement_reason" class="block text-[10px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">Alasan Replacement <span class="text-rose-455">*</span></label>
-                        <textarea id="replacement_reason" name="reason" required rows="4" placeholder="Jelaskan alasan mengapa aset ini harus diganti (contoh: mainboard terbakar, biaya perbaikan melebihi harga beli)..."
-                            class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-white text-xs outline-none transition resize-none"></textarea>
+                        <textarea id="replacement_reason" name="reason" required minlength="10" maxlength="1000" rows="4" placeholder="Jelaskan alasan mengapa aset ini harus diganti (contoh: mainboard terbakar, biaya perbaikan melebihi harga beli)..."
+                            aria-describedby="replacement-reason-help{{ $errors->replacement->has('reason') ? ' replacement-reason-error' : '' }}"
+                            @if($errors->replacement->has('reason')) aria-invalid="true" @endif
+                            class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-white text-xs outline-none transition resize-none">{{ old('reason') }}</textarea>
+                        <p id="replacement-reason-help" class="text-xs text-slate-400 mt-1">Isi alasan penggantian 10–1000 karakter.</p>
+                        @error('reason', 'replacement')
+                            <p id="replacement-reason-error" class="ops-field-error" role="alert">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
                 
@@ -1102,6 +1119,12 @@
         content.classList.add('scale-95', 'opacity-0');
         setTimeout(() => { modal.classList.add('hidden'); }, 200);
     }
+
+    @if($errors->replacement->any())
+        document.addEventListener('DOMContentLoaded', function() {
+            openRequestReplacementModal();
+        });
+    @endif
 
     function closePairRfidModal() {
         const modal = document.getElementById('pair-rfid-modal');
