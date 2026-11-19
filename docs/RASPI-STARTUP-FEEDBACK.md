@@ -49,3 +49,9 @@ Hardware:
 3. Scan QR aset uji yang sesuai dan tag: pastikan hasil akhir hijau + satu beep; pasangan sama tidak menghasilkan perubahan riwayat tambahan. Gunakan aset/tag uji untuk mencoba konflik dan tag nonaktif.
 4. Putuskan akses server: status harus tidak diketahui, bukan belum terdaftar. Lengkapi pasangan, pastikan masuk antrean; sambungkan lagi dan periksa satu pemasangan. Jangan hapus antrean saat pengujian.
 5. Pindahkan switch atau tap tag berbeda saat lookup menunggu: respons lama tidak boleh mengganti hasil terbaru. Hentikan service saat indikator aktif: LED/buzzer harus mati. Nyalakan kembali dan cek dashboard Online, preview, serta UID realtime.
+
+## Hasil penerapan perangkat 19 November 2026
+
+Source GitHub `fcb29937459d7d0a55643abf0bb7fd7700bea2b8` dipasang ke `/home/bagastyan/raspi_asset_iot` setelah 50 tes Python lulus pada Pi. Backup privat berada di `/home/bagastyan/asset-iot-backups/20261119T085428Z-before-fcb2993`. Backup SQLite konsisten berisi 54 transaksi (38 rejected, 16 success); semua UUID lama dan hash `.env` tetap sama setelah pembaruan. Wiring aktual tetap merah GPIO6, hijau GPIO5, biru GPIO13, buzzer GPIO18, LCD 0x27.
+
+Pada sesi ini sudo meminta password, sehingga program lama dibiarkan berjalan saat file baru dipasang secara atomik per file setelah tes staging. Pengguna kemudian menjalankan restart service sendiri. Log proses baru menunjukkan kamera/RFID/LCD ready, switch Cek, SQLite OK, serta frame diterima Laravel. Service active dengan restart otomatis nol. Dua scan baru mencapai server dan dijawab belum terdaftar; antrean lama tetap terjaga. Pengguna mengonfirmasi langsung buzzer, LCD mode Daftar, serta standby biru sudah sesuai. Versi clone RC522 0xB2 konsisten dan tetap diterima.

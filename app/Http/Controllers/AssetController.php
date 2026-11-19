@@ -16,6 +16,14 @@ class AssetController extends Controller
      */
     public function index(Request $request)
     {
+        $assets = $this->assetListQuery($request)->paginate(10)->withQueryString();
+        $locations = \App\Models\Location::orderBy('lantai')->orderBy('kode_ruangan')->get();
+
+        return view('assets.index', compact('assets', 'locations'));
+    }
+
+    private function assetListQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
         $query = Asset::query();
 
         // Search by name, asset_id, government_inventory_number, current_user, brand, model, category, serial_number
@@ -106,10 +114,7 @@ class AssetController extends Controller
                 break;
         }
 
-        $assets = $query->paginate(10)->withQueryString();
-        $locations = \App\Models\Location::orderBy('lantai')->orderBy('kode_ruangan')->get();
-
-        return view('assets.index', compact('assets', 'locations'));
+        return $query->orderBy('id', 'desc');
     }
 
     /**
@@ -409,56 +414,25 @@ class AssetController extends Controller
         return view('assets.history', compact('histories'));
     }
 
-    /**
-     * Export all assets to CSV format.
-     */
-    public function export()
+    /** Export the complete filtered list, independently of pagination. */
+    public function export(Request $request, \App\Services\AssetExcelExport $exporter)
     {
-        $fileName = 'it-assets-export-' . date('Y-m-d-His') . '.csv';
-        $assets = Asset::all();
+        $path = tempnam(sys_get_temp_dir(), 'asset-xlsx-');
+        if ($path === false) {
+            throw new \RuntimeException('Tidak dapat membuat file Excel sementara.');
+        }
+        try {
+            $exporter->write($this->assetListQuery($request), $path);
+        } catch (\Throwable $exception) {
+            @unlink($path);
+            throw $exception;
+        }
 
-        $headers = array(
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        );
-
-        $columns = array(
-            'ID', 'ID Asset TI', 'Nomor Inventaris Kementerian', 'Serial Number', 'Nama Aset', 'Kategori', 'Brand', 'Model', 'Spesifikasi', 
-            'Gedung', 'Lantai', 'Ruangan', 'User Saat Ini', 'Status', 'Tanggal Input', 'Terakhir Diperbarui'
-        );
-
-        $callback = function() use($assets, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($assets as $asset) {
-                fputcsv($file, array(
-                    $asset->id,
-                    $asset->asset_id,
-                    $asset->government_inventory_number ?? '-',
-                    $asset->serial_number ?? '-',
-                    $asset->name,
-                    $asset->category ?? '-',
-                    $asset->brand ?? '-',
-                    $asset->model ?? '-',
-                    $asset->specification ?? '-',
-                    $asset->building ?? '-',
-                    $asset->floor ?? '-',
-                    $asset->room ?? '-',
-                    $asset->current_user ?? '-',
-                    $asset->status,
-                    $asset->created_at->format('Y-m-d H:i:s'),
-                    $asset->updated_at->format('Y-m-d H:i:s')
-                ));
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response()->download($path, 'inventaris-ti-'.now()->format('Y-m-d-His').'.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ])->deleteFileAfterSend(true);
     }
 
     public function qrImage(Asset $asset, string $format, AssetQrCode $qrCode)

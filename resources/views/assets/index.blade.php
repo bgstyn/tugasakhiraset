@@ -9,7 +9,7 @@
         <div class="ops-inventory-heading">
             <p><strong>{{ number_format($assets->total(), 0, ',', '.') }}</strong> aset</p>
             <div class="ops-inline-actions">
-                <a href="{{ route('assets.export') }}" class="ops-button ops-button-secondary">Unduh CSV</a>
+                <a href="{{ route('assets.export', request()->only(['search', 'status', 'location_id', 'sort_by', 'quick_filter'])) }}" class="ops-button ops-button-secondary">Unduh Excel</a>
                 <a href="{{ route('assets.create') }}" class="ops-button ops-button-primary"><span aria-hidden="true">+</span> Tambah aset</a>
             </div>
         </div>
